@@ -1,0 +1,25 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+
+# IDE
+.vscode/
+.idea/
