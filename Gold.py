@@ -58,76 +58,61 @@ def tree_path(parent, depth, start, goal):
 		j -= 1
 	return path
 
-# The one or two directions that bring pos closer to goal by Manhattan distance.
-def toward(pos, goal):
-	dirs = []
-	if goal[0] > pos[0]:
-		dirs.append(East)
-	elif goal[0] < pos[0]:
-		dirs.append(West)
-	if goal[1] > pos[1]:
-		dirs.append(North)
-	elif goal[1] < pos[1]:
-		dirs.append(South)
-	return dirs
+# Index of every cell on the path, for shortcut checks.
+def path_index(path):
+	index = {}
+	for k in range(len(path)):
+		index[path[k]] = k
+	return index
 
-# Greedy sidestep: leave the planned path through a hedge that was closed
-# when the maze was explored and is open now, when that gets closer to the
-# goal and the cell is new this walk. Tree edges off the path are never
-# taken: they lead into dead ends. Returns the new cell, or None.
-def sidestep(delta, graph, index, visited, pos, goal):
-	for d in toward(pos, goal):
-		if d not in graph[pos]:
-			n = step(delta, pos, d)
-			if n not in index:
-				if n not in visited:
-					if can_move(d):
-						move(d)
-						return n
-	return None
+# Variant 0: tree path; at each step look at all four neighbours and jump
+# ahead along the path wherever a removed hedge allows. Neighbour tuples and
+# index lookups happen before can_move.
+def go_to_scan(dirs, delta, dir_of, parent, depth, goal):
+	path = tree_path(parent, depth, here(), goal)
+	index = path_index(path)
+	k = 0
+	while k < len(path) - 1:
+		pos = path[k]
+		best = k + 1
+		for d in dirs:
+			c = step(delta, pos, d)
+			if c in index and index[c] > best and can_move(d):
+				best = index[c]
+		move(dir_to(dir_of, pos, path[best]))
+		k = best
 
-# Walk to goal. Follows the tree path, jumping ahead along it wherever a
-# hedge has been removed. With greedy on, it also steps off the path toward
-# the goal through removed hedges and re-plans from there. `visited` keeps
-# a sidestep from revisiting a cell, which bounds the walk.
-def go_to(dirs, delta, dir_of, graph, parent, depth, goal, greedy):
-	pos = here()
-	visited = {}
-	while pos != goal:
-		path = tree_path(parent, depth, pos, goal)
-		index = {}
-		for k in range(len(path)):
-			index[path[k]] = k
+# Variant 1: tree path only, no shortcut checks.
+def go_to_lean(dir_of, parent, depth, goal):
+	path = tree_path(parent, depth, here(), goal)
+	for k in range(len(path) - 1):
+		move(dir_to(dir_of, path[k], path[k + 1]))
 
-		k = 0
-		n = None
-		while k < len(path) - 1:
-			pos = path[k]
-			visited[pos] = True
-			n = None
-			if greedy:
-				n = sidestep(delta, graph, index, visited, pos, goal)
-			if n != None:
-				break
-			best = k + 1
-			for d in dirs:
+# Variant 2: same shortcuts as variant 0, but can_move first so blocked
+# directions cost one tick, and if-chains instead of `and`.
+def go_to_fast(dirs, delta, dir_of, parent, depth, goal):
+	path = tree_path(parent, depth, here(), goal)
+	index = path_index(path)
+	k = 0
+	while k < len(path) - 1:
+		pos = path[k]
+		best = k + 1
+		for d in dirs:
+			if can_move(d):
 				c = step(delta, pos, d)
-				if c in index and index[c] > best and can_move(d):
-					best = index[c]      # removed hedge: jump ahead
-			move(dir_to(dir_of, pos, path[best]))
-			k = best
-		if n == None:
-			pos = goal
-		else:
-			pos = n
+				if c in index:
+					if index[c] > best:
+						best = index[c]
+		move(dir_to(dir_of, pos, path[best]))
+		k = best
 
 def createMaze(substanceAmount):
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
 # One maze: build it, explore it, relocate the treasure `reuses` times,
-# harvest. `greedy` enables off-path shortcuts through removed hedges.
-def CultivateGold(greedy = False, reuses = 300):
+# harvest. `variant` picks the walking strategy (see go_to_* above).
+def CultivateGold(variant = 0, reuses = 300):
 	substanceAmount = get_world_size() * 2**(num_unlocked(Unlocks.Mazes) - 1)
 	createMaze(substanceAmount)
 
@@ -142,6 +127,12 @@ def CultivateGold(greedy = False, reuses = 300):
 	explore(dirs, delta, back, graph, parent, depth)
 
 	for i in range(reuses):
-		go_to(dirs, delta, dir_of, graph, parent, depth, measure(), greedy)
+		goal = measure()
+		if variant == 1:
+			go_to_lean(dir_of, parent, depth, goal)
+		elif variant == 2:
+			go_to_fast(dirs, delta, dir_of, parent, depth, goal)
+		else:
+			go_to_scan(dirs, delta, dir_of, parent, depth, goal)
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
