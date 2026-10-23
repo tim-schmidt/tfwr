@@ -1,8 +1,11 @@
+from Utilities import *
+
 def here():
 	return (get_pos_x(), get_pos_y())
 
-def step(delta, pos, d):
-	return (pos[0] + delta[d][0], pos[1] + delta[d][1])
+# Neighbour of pos in direction d, wrapping at the farm edge like move().
+def step(n, delta, pos, d):
+	return ((pos[0] + delta[d][0]) % n, (pos[1] + delta[d][1]) % n)
 
 def scan(dirs, graph):
 	exits = []
@@ -15,6 +18,7 @@ def scan(dirs, graph):
 # parent, depth and pdir (a spanning tree rooted where the walk began;
 # pdir[cell] is the direction from cell to its parent).
 def explore(dirs, delta, back, graph, parent, depth, pdir):
+	n = get_world_size()
 	stack = []
 	depth[here()] = 0
 	while True:
@@ -23,12 +27,12 @@ def explore(dirs, delta, back, graph, parent, depth, pdir):
 			scan(dirs, graph)
 		went = False
 		for d in graph[pos]:
-			n = step(delta, pos, d)
-			if n not in graph:
+			c = step(n, delta, pos, d)
+			if c not in graph:
 				move(d)
-				parent[n] = pos
-				depth[n] = depth[pos] + 1
-				pdir[n] = back[d]
+				parent[c] = pos
+				depth[c] = depth[pos] + 1
+				pdir[c] = back[d]
 				stack.append(back[d])
 				went = True
 				break
@@ -68,10 +72,10 @@ def createMaze(substanceAmount):
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
-# One maze: build it, explore it, relocate the treasure `reuses` times,
-# harvest.
-def CultivateGold(reuses = 300):
-	substanceAmount = get_world_size() * 2**(num_unlocked(Unlocks.Mazes) - 1)
+# One maze under the drone: build it, explore it, relocate the treasure
+# `reuses` times, harvest. Returns the explored graph.
+def goldMaze(size, reuses):
+	substanceAmount = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
 	createMaze(substanceAmount)
 
 	dirs = [North, East, South, West]
@@ -85,6 +89,74 @@ def CultivateGold(reuses = 300):
 	explore(dirs, delta, back, graph, parent, depth, pdir)
 
 	for i in range(reuses):
-		go_to(parent, depth, pdir, back, measure())
+		goal = measure()
+		if goal == None:
+			quick_print("goldMaze: maze gone after", i, "relocations at", here())
+			return graph
+		go_to(parent, depth, pdir, back, goal)
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
+	return graph
+
+# Single drone. `size` is the maze size; 0 means the whole farm.
+def CultivateGold(size = 0, reuses = 300):
+	if size == 0:
+		size = get_world_size()
+	goldMaze(size, reuses)
+
+# Bounding box of the explored cells: (minX, minY, maxX, maxY).
+def mazeBounds(graph):
+	minX = get_world_size()
+	minY = minX
+	maxX = 0
+	maxY = 0
+	for cell in graph:
+		minX = min(minX, cell[0])
+		minY = min(minY, cell[1])
+		maxX = max(maxX, cell[0])
+		maxY = max(maxY, cell[1])
+	return (minX, minY, maxX, maxY)
+
+# Sector worker. Walks from (0, 0) over the open field to its sector's
+# center tile, waits for the shared deadline so every drone is in place
+# before any hedges appear, then farms one maze there. A maze spawns
+# centered on the drone (offset size // 2 down and left), so spawning from
+# the center puts it exactly on the sector.
+def sectorWorker(n, cx, cy, size, reuses, deadline):
+	MoveTo(n, 0, 0, cx, cy)
+	while get_time() < deadline:
+		pass
+	graph = goldMaze(size, reuses)
+	quick_print("sector center", (cx, cy), "maze bounds", mazeBounds(graph))
+
+# Many drones, one maze each, on a grid of square sectors of side `size`.
+# `rounds` of 0 means run forever.
+def CultivateGoldInSectors(size, reuses = 300, rounds = 0):
+	n = get_world_size()
+	k = n // size
+	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
+
+	# Seconds per move at the current speed, for the arrival deadline.
+	t0 = get_time()
+	move(East)
+	move(West)
+	perMove = (get_time() - t0) / 2
+
+	done = 0
+	while rounds == 0 or done < rounds:
+		deadline = get_time() + perMove * (2 * n + 4)
+		workers = []
+		half = size // 2
+		for i in range(k):
+			for j in range(k):
+				if i == 0 and j == 0:
+					continue
+				drone = spawn_drone(sectorWorker, n, i * size + half, j * size + half, size, reuses, deadline)
+				if drone == None:
+					quick_print("no drone for sector", (i, j))
+				else:
+					workers.append(drone)
+		sectorWorker(n, half, half, size, reuses, deadline)
+		for drone in workers:
+			wait_for(drone)
+		done += 1
