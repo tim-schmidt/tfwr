@@ -25,21 +25,30 @@ def prep_column(n, a, b):
 # ---------------- polyculture ----------------
 # State for companion planting on one strip of columns x0 .. x0 + w - 1:
 #   planted  tile -> crop we put there        wanted  tile -> crop a neighbour asked for
-def polyState(x0, w):
-	return {"planted": {}, "wanted": {}, "x0": x0, "x1": x0 + w}
+#   a, b     the checkerboard pair, assumed on tiles we have no record of
+def polyState(x0, w, a, b):
+	return {"planted": {}, "wanted": {}, "x0": x0, "x1": x0 + w, "a": a, "b": b}
+
+# What we believe stands on tile q: our record, else its checkerboard crop.
+def believed(poly, q):
+	if q in poly["planted"]:
+		return poly["planted"][q]
+	if IsEven(q[0] + q[1]):
+		return poly["a"]
+	return poly["b"]
 
 # True when an orthogonal neighbour of (x, y) holds `crop`. Planting the
 # same crop there would halve its growth per such neighbour.
-def sameNeighbour(n, x, y, crop, planted):
+def sameNeighbour(n, x, y, crop, poly):
 	for q in [((x + 1) % n, y), ((x - 1) % n, y), (x, (y + 1) % n), (x, (y - 1) % n)]:
-		if q in planted:
-			if planted[q] == crop:
-				return True
+		if believed(poly, q) == crop:
+			return True
 	return False
 
 # Plant the tile under the drone. With poly, honour a companion request for
-# this tile unless it would sit next to an identical crop, record what we
-# planted, and record the new plant's own request if it falls on our strip.
+# this tile unless it would sit next to an identical crop or cannot be
+# afforded, record what we planted, and record the new plant's own request
+# if it falls on our strip.
 def plantTile(n, x, y, crop, poly):
 	if poly == None:
 		plant(crop)
@@ -47,10 +56,19 @@ def plantTile(n, x, y, crop, poly):
 	tile = (x, y)
 	wanted = poly["wanted"]
 	if tile in wanted:
-		if not sameNeighbour(n, x, y, wanted[tile], poly["planted"]):
-			crop = wanted[tile]
-	TillIfNeeded(crop)
-	plant(crop)
+		if not sameNeighbour(n, x, y, wanted[tile], poly):
+			TillIfNeeded(wanted[tile])
+			if plant(wanted[tile]):
+				crop = wanted[tile]
+			else:
+				TillIfNeeded(crop)
+				plant(crop)
+		else:
+			TillIfNeeded(crop)
+			plant(crop)
+	else:
+		TillIfNeeded(crop)
+		plant(crop)
 	poly["planted"][tile] = crop
 	ask = get_companion()
 	if ask != None:
@@ -82,7 +100,7 @@ def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until
 	y0 = get_pos_y()
 	poly = None
 	if companions:
-		poly = polyState(x0, w)
+		poly = polyState(x0, w, primaryCrop, secondaryCrop)
 
 	for i in range(w):
 		a, b = crop_here(x0 + i, y0, primaryCrop, secondaryCrop)

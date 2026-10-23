@@ -25,11 +25,36 @@ def defaultCrop(n, x, y, primary, secondary, planted):
 				return secondary
 	return primary
 
+# Returns whether the plant went in (False when the crop is unaffordable).
 def putPlant(crop, water, fertilize):
 	TillIfNeeded(crop)
-	plant(crop)
+	if not plant(crop):
+		return False
 	WaterIfWanted(water)
 	FertilizeIfWanted(fertilize)
+	return True
+
+# Replant (x, y) with its recorded crop, falling back to the checkerboard
+# crop when that cannot be afforded, and record what went in.
+def replant(n, x, y, planted, primary, secondary, water, fertilize):
+	crop = planted[(x, y)]
+	if crop == None or not putPlant(crop, water, fertilize):
+		crop = defaultCrop(n, x, y, primary, secondary, planted)
+		if not putPlant(crop, water, fertilize):
+			crop = secondary
+			putPlant(crop, water, fertilize)
+		planted[(x, y)] = crop
+
+# clear() hands the farm back with plants on it. Harvest everything so the
+# fill starts from bare tiles.
+def clearBoard(n):
+	for x in range(n):
+		for y in range(n):
+			while get_entity_type() != None:
+				if can_harvest():
+					harvest()
+			move(North)
+		move(East)
 
 # Helper drone. Walks from (fx, fy) to (x, y), plants `crop` if the tile is
 # empty, then follows the new plant's own request, and so on, until a
@@ -79,19 +104,22 @@ def fillBoard(n, primary, secondary, water, fertilize, dispatch):
 		wait_for(drone)
 	return planted
 
-# One sensing sweep: what stands on every tile.
-def readBoard(n):
+# One sensing sweep: what stands on every tile. Empty tiles (a helper's
+# plant was unaffordable) get the checkerboard crop.
+def readBoard(n, primary, secondary, water, fertilize):
 	planted = {}
 	for x in range(n):
 		for y in range(n):
 			planted[(x, y)] = get_entity_type()
+			if planted[(x, y)] == None:
+				replant(n, x, y, planted, primary, secondary, water, fertilize)
 			move(North)
 		move(East)
 	return planted
 
 # Sweep until every plant's request is met. A ripe plant with an unmet
 # request is harvested and replanted with the same crop for a new request.
-def rerollBoard(n, planted, water, fertilize):
+def rerollBoard(n, planted, primary, secondary, water, fertilize):
 	while True:
 		unmet = 0
 		for x in range(n):
@@ -102,20 +130,20 @@ def rerollBoard(n, planted, water, fertilize):
 						unmet += 1
 						if can_harvest():
 							harvest()
-							putPlant(planted[(x, y)], water, fertilize)
+							replant(n, x, y, planted, primary, secondary, water, fertilize)
 				move(North)
 			move(East)
 		if unmet == 0:
 			return
 
 # Harvest every tile, waiting for each to ripen, replanting the same crop.
-def harvestBoard(n, planted, water, fertilize):
+def harvestBoard(n, planted, primary, secondary, water, fertilize):
 	for x in range(n):
 		for y in range(n):
 			while not can_harvest():
 				pass
 			harvest()
-			putPlant(planted[(x, y)], water, fertilize)
+			replant(n, x, y, planted, primary, secondary, water, fertilize)
 			move(North)
 		move(East)
 
@@ -125,12 +153,13 @@ def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, di
 	clear()
 	n = get_world_size()
 	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
+	clearBoard(n)
 	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch)
 	if dispatch:
-		planted = readBoard(n)
+		planted = readBoard(n, primary, secondary, water, fertilize)
 	done = 0
 	while rounds == 0 or done < rounds:
 		if reroll:
-			rerollBoard(n, planted, water, fertilize)
-		harvestBoard(n, planted, water, fertilize)
+			rerollBoard(n, planted, primary, secondary, water, fertilize)
+		harvestBoard(n, planted, primary, secondary, water, fertilize)
 		done += 1
