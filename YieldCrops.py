@@ -45,26 +45,29 @@ def replant(n, x, y, planted, primary, secondary, water, fertilize):
 			putPlant(crop, water, fertilize)
 		planted[(x, y)] = crop
 
-# clear() hands the farm back with plants on it. Harvest everything so the
-# fill starts from bare tiles.
-def clearBoard(n):
-	for x in range(n):
-		for y in range(n):
-			while get_entity_type() != None:
-				if can_harvest():
-					harvest()
-			move(North)
-		move(East)
+# Replace whatever grass stands here with `crop`. Bare grassland grows
+# grass on its own, so grass is never "taken". Returns False when the
+# tile holds something else or the crop cannot be planted.
+def takeTile(crop, water, fertilize):
+	entity = get_entity_type()
+	if entity == Entities.Grass:
+		if crop == Entities.Grass:
+			return True
+		while not can_harvest():
+			pass
+		harvest()
+	elif entity != None:
+		return entity == crop
+	return putPlant(crop, water, fertilize)
 
-# Helper drone. Walks from (fx, fy) to (x, y), plants `crop` if the tile is
-# empty, then follows the new plant's own request, and so on, until a
-# requested tile is already taken.
+# Helper drone. Walks from (fx, fy) to (x, y), plants `crop` there unless
+# the tile holds another crop, then follows the plant's own request, and
+# so on, until a requested tile is taken.
 def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
 	while True:
 		MoveTo(n, fx, fy, x, y)
-		if get_entity_type() != None:
+		if not takeTile(crop, water, fertilize):
 			return
-		putPlant(crop, water, fertilize)
 		ask = get_companion()
 		if ask == None:
 			return
@@ -74,7 +77,8 @@ def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
 		y = ask[1][1]
 		crop = ask[0]
 
-# Fill sweep from (0, 0). Returns what main planted (helpers' plants are
+# Fill sweep from (0, 0). Grass is replaced; anything else was put there
+# by a helper and stays. Returns what main planted (helpers' plants are
 # not in it; readBoard() fills the gaps).
 def fillBoard(n, primary, secondary, water, fertilize, dispatch):
 	planted = {}
@@ -82,21 +86,19 @@ def fillBoard(n, primary, secondary, water, fertilize, dispatch):
 	helpers = []
 	for x in range(n):
 		for y in range(n):
-			if get_entity_type() == None:
-				tile = (x, y)
-				crop = defaultCrop(n, x, y, primary, secondary, planted)
-				if tile in wanted:
-					crop = wanted[tile]
-				putPlant(crop, water, fertilize)
+			tile = (x, y)
+			crop = defaultCrop(n, x, y, primary, secondary, planted)
+			if tile in wanted:
+				crop = wanted[tile]
+			if takeTile(crop, water, fertilize):
 				planted[tile] = crop
 				if dispatch:
 					ask = get_companion()
 					if ask != None:
 						pos = ask[1]
+						wanted[pos] = ask[0]
 						drone = spawn_drone(plantCompanion, n, x, y, pos[0], pos[1], ask[0], water, fertilize)
-						if drone == None:
-							wanted[pos] = ask[0]
-						else:
+						if drone != None:
 							helpers.append(drone)
 			move(North)
 		move(East)
@@ -153,7 +155,6 @@ def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, di
 	clear()
 	n = get_world_size()
 	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
-	clearBoard(n)
 	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch)
 	if dispatch:
 		planted = readBoard(n, primary, secondary, water, fertilize)
