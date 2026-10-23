@@ -15,7 +15,7 @@ for size in sizes:
 	SIM_GLOBALS["SIZE"] = size
 	total = 0
 	for seed in seeds:
-		t = simulate("SimSectorRun", Unlocks, items, SIM_GLOBALS, seed, speedup)
+		t = simulate("SimSectorStart", Unlocks, items, SIM_GLOBALS, seed, speedup)
 		quick_print("world", world, "size", size, "seed", seed, "time", t)
 		total += t
 	quick_print("world", world, "size", size, "average", total / len(seeds))

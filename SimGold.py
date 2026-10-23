@@ -1,4 +1,4 @@
-# Single-drone gold sweep: one maze per size and seed. SimGoldRun prints
+# Single-drone gold sweep: one maze per size and seed. SimGoldStart prints
 # gold gained and substance spent per maze from inside the simulation;
 # this file prints the time. Together they give gold per second and gold
 # per substance for each size. Run this file directly in the game.
@@ -13,7 +13,7 @@ for size in sizes:
 	SIM_GLOBALS["SIZE"] = size
 	total = 0
 	for seed in seeds:
-		t = simulate("SimGoldRun", Unlocks, items, SIM_GLOBALS, seed, speedup)
+		t = simulate("SimGoldStart", Unlocks, items, SIM_GLOBALS, seed, speedup)
 		quick_print("size", size, "seed", seed, "time", t)
 		total += t
 	quick_print("size", size, "average", total / len(seeds))

@@ -1,4 +1,5 @@
-# Start file for SimSector.py. WORLD and SIZE arrive through sim_globals.
+# Start file that simulate() loads for SimSector.py. Not run directly.
+# WORLD and SIZE arrive through sim_globals.
 # One round of sector mazes; prints gold gained and substance spent.
 from Gold import CultivateGoldInSectors
 
