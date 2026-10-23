@@ -60,7 +60,8 @@ def tree_route(parent, depth, pdir, back, start, goal):
 # Walk the tree route from here to goal. Shortcut checks through removed
 # hedges were measured in simulation and cost more than they save.
 def go_to(parent, depth, pdir, back, goal):
-	for d in tree_route(parent, depth, pdir, back, here(), goal):
+	route = tree_route(parent, depth, pdir, back, here(), goal)
+	for d in route:
 		move(d)
 
 def createMaze(substanceAmount):
