@@ -3,8 +3,9 @@ from Utilities import *
 def here():
 	return (get_pos_x(), get_pos_y())
 
-def step(delta, pos, d):
-	return (pos[0] + delta[d][0], pos[1] + delta[d][1])
+# Neighbour of pos in direction d, wrapping at the farm edge like move().
+def step(n, delta, pos, d):
+	return ((pos[0] + delta[d][0]) % n, (pos[1] + delta[d][1]) % n)
 
 def scan(dirs, graph):
 	exits = []
@@ -17,6 +18,7 @@ def scan(dirs, graph):
 # parent, depth and pdir (a spanning tree rooted where the walk began;
 # pdir[cell] is the direction from cell to its parent).
 def explore(dirs, delta, back, graph, parent, depth, pdir):
+	n = get_world_size()
 	stack = []
 	depth[here()] = 0
 	while True:
@@ -25,16 +27,16 @@ def explore(dirs, delta, back, graph, parent, depth, pdir):
 			scan(dirs, graph)
 		went = False
 		for d in graph[pos]:
-			n = step(delta, pos, d)
-			if n not in graph:
+			c = step(n, delta, pos, d)
+			if c not in graph:
 				move(d)
 				actual = here()
-				if actual != n:
-					quick_print("explore: expected", n, "but at", actual, "after", d, "from", pos)
-					n = actual
-				parent[n] = pos
-				depth[n] = depth[pos] + 1
-				pdir[n] = back[d]
+				if actual != c:
+					quick_print("explore: expected", c, "but at", actual, "after", d, "from", pos)
+					c = actual
+				parent[c] = pos
+				depth[c] = depth[pos] + 1
+				pdir[c] = back[d]
 				stack.append(back[d])
 				went = True
 				break
