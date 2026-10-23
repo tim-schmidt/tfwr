@@ -28,6 +28,10 @@ def explore(dirs, delta, back, graph, parent, depth, pdir):
 			n = step(delta, pos, d)
 			if n not in graph:
 				move(d)
+				actual = here()
+				if actual != n:
+					quick_print("explore: expected", n, "but at", actual, "after", d, "from", pos)
+					n = actual
 				parent[n] = pos
 				depth[n] = depth[pos] + 1
 				pdir[n] = back[d]
