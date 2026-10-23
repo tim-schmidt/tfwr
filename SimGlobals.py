@@ -6,4 +6,4 @@
 #   OX, OY - drone start tile (SimAnchor)
 #   COMPANIONS, DRONES, TARGET - crop test switches (SimCrops)
 #   DISPATCH, REROLL - yield mode switches (SimYield)
-SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 20000, "DISPATCH": False, "REROLL": False}
+SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 200000000, "DISPATCH": False, "REROLL": False}
