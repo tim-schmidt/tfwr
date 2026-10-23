@@ -16,13 +16,14 @@ def layout():
 
 # One pass up the column fixing the ground. Done once per column, so the
 # hot loop never has to look at the ground again.
-# First pass over a column: till, soak to the water threshold, and plant,
-# so the crop grows at full speed from the start and the first farm pass
-# already finds it growing.
+# First pass over a column: till, water once, and plant, so the first farm
+# pass already finds the crop growing. One watering, not a soak: on long
+# strips a pass outlasts growth anyway and extra uses up front are pure
+# cost (measured at 20M wood on 32x32).
 def prep_column(n, x, a, b, water, fertilize, poly):
 	for y in range(n):
 		TillIfNeeded(a)
-		SoakIfWanted(water)
+		WaterIfWanted(water)
 		if can_harvest():
 			harvest()
 			plantTile(n, x, y, a, poly)

@@ -39,13 +39,6 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 	if wanted and get_water() < threshold:
 		use_item(Items.Water)
 
-# Water the tile all the way up to `threshold` in one visit, for a prep
-# pass so growth starts at full speed instead of climbing over passes.
-def SoakIfWanted(wanted = False, threshold = 0.75):
-	if wanted:
-		while get_water() < threshold:
-			use_item(Items.Water)
-
 # True when every item in the crop's planting cost is in stock.
 def CanAfford(crop):
 	cost = get_cost(crop)
