@@ -4,4 +4,5 @@
 #   SIZE  - maze size (SimGold) or sector size (SimSector)
 #   WORLD - farm size (SimSector, SimAnchor)
 #   OX, OY - drone start tile (SimAnchor)
-SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0}
+#   COMPANIONS, DRONES, TARGET - crop test switches (SimCrops)
+SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 20000}

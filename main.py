@@ -1,11 +1,13 @@
 #water = False
 #fertilize = False
+#companions = False    # needs the Polyculture unlock
+#until = None          # or (Items.Wood, 1000) to stop at a stock level
 
 #from StandardCrops import CultivateCrops, CultivateCropsWithDrones
 #primaryCrop = Entities.Grass
 #secondaryCrop = Entities.Carrot
-#CultivateCrops(primaryCrop, secondaryCrop, water, fertilize)
-#CultivateCropsWithDrones(primaryCrop, secondaryCrop, water, fertilize)
+#CultivateCrops(primaryCrop, secondaryCrop, water, fertilize, companions, until)
+#CultivateCropsWithDrones(primaryCrop, secondaryCrop, water, fertilize, companions, until)
 
 #from Pumpkins import CultivatePumpkins, CultivatePumpkinsWithDrones
 #CultivatePumpkins(water, fertilize)
