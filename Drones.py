@@ -87,6 +87,7 @@ def farm_column(n, x, a, b, water, fertilize, poly):
 # num_items(until[0]) reaches until[1], checked once per pass. Ends back at
 # the strip's first column.
 def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until):
+	RefreshSoilCrops()
 	n = get_world_size()
 	x0 = get_pos_x()
 	y0 = get_pos_y()

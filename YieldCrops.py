@@ -70,6 +70,7 @@ def takeTile(crop, water, fertilize):
 # that is taken, unaffordable, or already holds the crop (whoever planted
 # it dispatched its request).
 def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
+	RefreshSoilCrops()
 	while True:
 		MoveTo(n, fx, fy, x, y)
 		if takeTile(crop, water, fertilize) != 1:
@@ -166,6 +167,7 @@ def harvestBoard(n, planted, primary, secondary, water, fertilize):
 # checkerboard board, the baseline.
 def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0):
 	clear()
+	RefreshSoilCrops()
 	n = get_world_size()
 	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
 	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch)

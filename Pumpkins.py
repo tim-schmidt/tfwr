@@ -43,6 +43,7 @@ def growPumpkinStrip(n, w, water, fertilize):
 # Single drone: the whole field is one strip. A fully ripe field has merged
 # into one giant pumpkin, so a single harvest takes all of it.
 def CultivatePumpkins(water = False, fertilize = False):
+	RefreshSoilCrops()
 	clear()
 	n = get_world_size()
 	while True:
@@ -51,6 +52,7 @@ def CultivatePumpkins(water = False, fertilize = False):
 
 # Drone worker: strip width from layout(), clipped at the east edge.
 def pumpkinStrip(water = False, fertilize = False):
+	RefreshSoilCrops()
 	n, w, d = layout()
 	growPumpkinStrip(n, min(w, n - get_pos_x()), water, fertilize)
 

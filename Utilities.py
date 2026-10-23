@@ -1,9 +1,18 @@
-# Starts empty. Append each crop when its first unlock level lands:
-#   Unlocks.Carrots    -> Entities.Carrot
-#   Unlocks.Sunflowers -> Entities.Sunflower
-#   Unlocks.Pumpkins   -> Entities.Pumpkin
-#   Unlocks.Cactus     -> Entities.Cactus
+# Crops that only grow on soil. Rebuilt from the unlock tree by
+# RefreshSoilCrops(); an entity is only named once its unlock is owned.
 CROPS_NEEDING_SOIL = []
+
+def RefreshSoilCrops():
+	while len(CROPS_NEEDING_SOIL) > 0:
+		CROPS_NEEDING_SOIL.pop()
+	if num_unlocked(Unlocks.Carrots) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Carrot)
+	if num_unlocked(Unlocks.Sunflowers) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Sunflower)
+	if num_unlocked(Unlocks.Pumpkins) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Pumpkin)
+	if num_unlocked(Unlocks.Cactus) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Cactus)
 
 def IsEven(number):
 	return number % 2 == 0
