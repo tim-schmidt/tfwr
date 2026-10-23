@@ -9,7 +9,7 @@ seeds = [1, 2, 3]
 worlds = [16, 32]
 modes = [4]
 waters = [False, True]
-target = 200000000
+target = 20000000
 speedup = 256
 
 SIM_GLOBALS["TARGET"] = target
