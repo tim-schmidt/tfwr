@@ -1,12 +1,13 @@
 # Time test: seconds to TARGET wood for each contender (see SimTimeStart
-# for the MODE list) on 8x8 and 16x16, same seeds. wood/s = TARGET / time.
+# for the MODE list), same seeds. wood/s = TARGET / time. Edit `worlds`
+# and `modes` to pick the cases.
 # Run this file directly in the game.
 from SimGlobals import SIM_GLOBALS
 
 items = {Items.Power: 1000000000, Items.Hay: 1000000000, Items.Wood: 1000000000, Items.Carrot: 1000000000}
 seeds = [1, 2, 3]
-worlds = [8, 16]
-modes = [1, 2, 3, 4, 5]
+worlds = [32]
+modes = [1, 2, 3, 4]
 target = 200000000
 speedup = 256
 
