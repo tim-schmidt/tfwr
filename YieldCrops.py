@@ -195,11 +195,12 @@ def harvestBoard(n, planted, primary, secondary, water, fertilize):
 			move(North)
 		move(East)
 
-# `rounds` of 0 runs forever. dispatch=False, reroll=False is a plain
-# fixed-layout board, the baseline. `share` and `slots` shape the layout
-# when dispatch is off (see layoutCrop). Returns the number of re-rolls
-# over all rounds.
-def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0, share = 50, slots = None):
+# `rounds` of 0 runs forever. `until` is None or (item, amount): stop
+# once num_items(item) reaches amount, checked once per round.
+# dispatch=False, reroll=False is a plain fixed-layout board, the
+# baseline. `share` and `slots` shape the layout when dispatch is off (see
+# layoutCrop). Returns the number of re-rolls over all rounds.
+def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0, share = 50, slots = None, until = None):
 	clear()
 	RefreshSoilCrops()
 	n = get_world_size()
@@ -214,4 +215,7 @@ def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, di
 			rolls += rerollBoard(n, planted, primary, secondary, water, fertilize)
 		harvestBoard(n, planted, primary, secondary, water, fertilize)
 		done += 1
+		if until != None:
+			if num_items(until[0]) >= until[1]:
+				break
 	return rolls
