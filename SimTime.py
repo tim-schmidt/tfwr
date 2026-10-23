@@ -7,7 +7,7 @@ from SimGlobals import SIM_GLOBALS
 items = {Items.Power: 1000000000, Items.Hay: 1000000000, Items.Wood: 1000000000, Items.Carrot: 1000000000, Items.Water: 1000000000}
 seeds = [1, 2, 3]
 worlds = [16, 32]
-modes = [3, 4]
+modes = [4]
 waters = [False, True]
 target = 200000000
 speedup = 256

@@ -16,9 +16,20 @@ def layout():
 
 # One pass up the column fixing the ground. Done once per column, so the
 # hot loop never has to look at the ground again.
-def prep_column(n, a, b):
-	for _ in range(n):
+# First pass over a column: till, soak to the water threshold, and plant,
+# so the crop grows at full speed from the start and the first farm pass
+# already finds it growing.
+def prep_column(n, x, a, b, water, fertilize, poly):
+	for y in range(n):
 		TillIfNeeded(a)
+		SoakIfWanted(water)
+		if can_harvest():
+			harvest()
+			plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize)
+		elif get_entity_type() == None:
+			plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize)
 		move(North)
 		a, b = b, a
 
@@ -97,7 +108,7 @@ def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until
 
 	for i in range(w):
 		a, b = crop_here(x0 + i, y0, primaryCrop, secondaryCrop)
-		prep_column(n, a, b)
+		prep_column(n, x0 + i, a, b, water, fertilize, poly)
 		if i < w - 1:
 			move(East)
 	for _ in range(w - 1):
