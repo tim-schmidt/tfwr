@@ -1,0 +1,136 @@
+from Utilities import *
+
+# Yield mode: maximise the yield of ONE full board under polyculture,
+# time second. Experimental, for simulation. Needs the Polyculture unlock.
+#
+# Phases per board:
+#   fill      main sweeps and plants every empty tile; with `dispatch`, each
+#             new plant's companion request is handed to a helper drone that
+#             plants it at once and follows the chain of requests while the
+#             requested tiles are empty
+#   re-roll   with `reroll`, main sweeps until every plant's request is met,
+#             harvesting and replanting (same crop) any ripe plant whose
+#             request is not met, which rolls a new request
+#   harvest   one sweep harvesting every tile, replanting the same crop at
+#             once so companions stay standing for the tiles after them
+
+def orthogonal(n, x, y):
+	return [((x + 1) % n, y), ((x - 1) % n, y), (x, (y + 1) % n), (x, (y - 1) % n)]
+
+# Primary unless an orthogonal neighbour we know of already holds it.
+def defaultCrop(n, x, y, primary, secondary, planted):
+	for q in orthogonal(n, x, y):
+		if q in planted:
+			if planted[q] == primary:
+				return secondary
+	return primary
+
+def putPlant(crop, water, fertilize):
+	TillIfNeeded(crop)
+	plant(crop)
+	WaterIfWanted(water)
+	FertilizeIfWanted(fertilize)
+
+# Helper drone. Walks from (fx, fy) to (x, y), plants `crop` if the tile is
+# empty, then follows the new plant's own request, and so on, until a
+# requested tile is already taken.
+def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
+	while True:
+		MoveTo(n, fx, fy, x, y)
+		if get_entity_type() != None:
+			return
+		putPlant(crop, water, fertilize)
+		ask = get_companion()
+		if ask == None:
+			return
+		fx = x
+		fy = y
+		x = ask[1][0]
+		y = ask[1][1]
+		crop = ask[0]
+
+# Fill sweep from (0, 0). Returns what main planted (helpers' plants are
+# not in it; readBoard() fills the gaps).
+def fillBoard(n, primary, secondary, water, fertilize, dispatch):
+	planted = {}
+	wanted = {}
+	helpers = []
+	for x in range(n):
+		for y in range(n):
+			if get_entity_type() == None:
+				tile = (x, y)
+				crop = defaultCrop(n, x, y, primary, secondary, planted)
+				if tile in wanted:
+					crop = wanted[tile]
+				putPlant(crop, water, fertilize)
+				planted[tile] = crop
+				if dispatch:
+					ask = get_companion()
+					if ask != None:
+						pos = ask[1]
+						drone = spawn_drone(plantCompanion, n, x, y, pos[0], pos[1], ask[0], water, fertilize)
+						if drone == None:
+							wanted[pos] = ask[0]
+						else:
+							helpers.append(drone)
+			move(North)
+		move(East)
+	for drone in helpers:
+		wait_for(drone)
+	return planted
+
+# One sensing sweep: what stands on every tile.
+def readBoard(n):
+	planted = {}
+	for x in range(n):
+		for y in range(n):
+			planted[(x, y)] = get_entity_type()
+			move(North)
+		move(East)
+	return planted
+
+# Sweep until every plant's request is met. A ripe plant with an unmet
+# request is harvested and replanted with the same crop for a new request.
+def rerollBoard(n, planted, water, fertilize):
+	while True:
+		unmet = 0
+		for x in range(n):
+			for y in range(n):
+				ask = get_companion()
+				if ask != None:
+					if planted[ask[1]] != ask[0]:
+						unmet += 1
+						if can_harvest():
+							harvest()
+							putPlant(planted[(x, y)], water, fertilize)
+				move(North)
+			move(East)
+		if unmet == 0:
+			return
+
+# Harvest every tile, waiting for each to ripen, replanting the same crop.
+def harvestBoard(n, planted, water, fertilize):
+	for x in range(n):
+		for y in range(n):
+			while not can_harvest():
+				pass
+			harvest()
+			putPlant(planted[(x, y)], water, fertilize)
+			move(North)
+		move(East)
+
+# `rounds` of 0 runs forever. dispatch=False, reroll=False is a plain
+# checkerboard board, the baseline.
+def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0):
+	clear()
+	n = get_world_size()
+	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
+	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch)
+	if dispatch:
+		planted = readBoard(n)
+	done = 0
+	while rounds == 0 or done < rounds:
+		if reroll:
+			rerollBoard(n, planted, water, fertilize)
+		harvestBoard(n, planted, water, fertilize)
+		done += 1
