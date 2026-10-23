@@ -22,8 +22,11 @@ def TillIfNeeded(crop):
 	if NeedsSoil(crop) and get_ground_type() != Grounds.Soil:
 		till()
 
-# Water the tile when its water level is under `threshold`.
-def WaterIfWanted(wanted = False, threshold = 0.1):
+# Water the tile when its water level is under `threshold`. Growth speed
+# is 1x at water 0 and 5x at water 1, and each watering adds 0.25, so a
+# threshold of 0.75 keeps the level in the 0.75 to 1.0 band without
+# overshooting the cap.
+def WaterIfWanted(wanted = False, threshold = 0.75):
 	if wanted and get_water() < threshold:
 		use_item(Items.Water)
 
