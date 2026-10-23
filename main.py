@@ -19,7 +19,10 @@
 #from Bones import CultivateBones
 #CultivateBones()
 
-#from Gold import CultivateGold
-#CultivateGold()
+#from Gold import CultivateGold, CultivateGoldWithDrones, CultivateGoldInSectors
+#mazeSize = 0          # 0 = whole farm; gold per substance equals the maze size
+#CultivateGold(mazeSize)
+#CultivateGoldWithDrones(mazeSize)
+#CultivateGoldInSectors(8)
 
 #leaderboard_run(Leaderboards.Fastest_Reset, "FastestReset", 256)
