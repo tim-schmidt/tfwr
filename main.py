@@ -22,8 +22,4 @@
 #from Gold import CultivateGold
 #CultivateGold()
 
-#from Globals import DM_ORDERS
-#from GoldWithDrones import CultivateGoldWithDrones
-#CultivateGoldWithDrones(DM_ORDERS)
-
 #leaderboard_run(Leaderboards.Fastest_Reset, "FastestReset", 256)
