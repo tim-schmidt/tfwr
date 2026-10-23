@@ -1,0 +1,338 @@
+# Unlocks List
+
+- [ ] Harvest: 5 Hay
+- [ ] **Unlock: Loops**
+- [ ] Harvest: 20 Hay
+- [ ] **Unlock: Speed (1)**
+- [ ] Harvest: 30 Hay
+- [ ] **Unlock: Expand (1)**
+- [ ] Harvest: 50 Hay
+- [ ] **Unlock: Plant**
+- [ ] Plant: Bush
+- [ ] Harvest: 20 Wood
+- [ ] **Unlock: Expand (2)**
+- [ ] Harvest: 20 Wood
+- [ ] **Unlock: Speed (2)**
+- [ ] Harvest: 10 Wood
+- [ ] Plant: Grass
+- [ ] Harvest: 300 Hay
+- [ ] **Unlock: Grass (2)**
+- [ ] Harvest: 150 Hay, 10 Wood
+- [ ] **Unlock: Operators**
+- [ ] Harvest: 100 Hay
+- [ ] **Unlock: Senses**
+- [ ] Plant: Bush and Grass
+- [ ] Harvest: 50 Wood
+- [ ] **Unlock: Carrots (1)**
+- [ ] Plant: Carrot and Bush
+- [ ] Harvest: 50 Wood, 70 Carrots
+- [ ] **Unlock: Trees (1)**
+- [ ] Plant: Carrot and Tree
+- [ ] Harvest: 30 Wood, 20 Carrots
+- [ ] **Unlock: Expand (3)**
+- [ ] Plant: Grass and Tree
+- [ ] Harvest: 50 Hay
+- [ ] Plant: Carrot and Tree
+- [ ] Harvest: 50 Wood, 50 Carrots
+- [ ] **Unlock: Speed (3)**
+- [ ] Plant: Tree and Grass
+- [ ] Harvest: 250 Wood
+- [ ] **Unlock: Carrots (2)**
+- [ ] Harvest: 300 Hay
+- [ ] **Unlock: Trees (2)**
+- [ ] Harvest: 500 Wood
+- [ ] **Unlock: Grass (3)**
+- [ ] Harvest: 50 Hay
+- [ ] Plant: Tree and Carrot
+- [ ] Harvest: 100 Wood, 50 Carrots
+- [ ] **Unlock: Expand (4)**
+- [ ] Plant: Tree and Grass
+- [ ] Harvest: 50 Wood
+- [ ] **Unlock: Watering (1)**
+- [ ] Harvest: 200 Wood
+- [ ] **Unlock: Watering (2)**
+- [ ] Harvest: 500 Wood
+- [ ] **Unlock: Fertilizer**
+- [ ] Plant: Tree and Carrot
+- [ ] Harvest: 35 Carrot
+- [ ] **Unlock: Variables**
+- [ ] Harvest: 40 Carrot
+- [ ] **Unlock: Functions**
+- [ ] Harvest: 80 Carrot
+- [ ] **Unlock: Import**
+- [ ] Harvest: 1250 Wood
+- [ ] **Unlock: Carrots (3)**
+- [ ] Harvest: 500 Carrot
+- [ ] **Unlock: Speed (4)**
+- [ ] Harvest: 500 Carrot
+- [ ] **Unlock: Lists**
+- [ ] Refactor:
+  - [ ] Add Utilities.py
+  - [ ] Add StandardCrops.py
+  - [ ] Update main.py
+- [ ] Plant: Trees and Grass
+- [ ] Harvest: 2500 Wood
+- [ ] **Unlock: Grass (4)**
+- [ ] Harvest: 800 Wood
+- [ ] **Unlock: Watering (3)**
+- [ ] Harvest: 1200 Hay
+- [ ] **Unlock: Trees (3)**
+- [ ] Harvest: 50 Hay
+- [ ] **Unlock: Hats**
+- [ ] Harvest: 50 Hay, 50 Wood
+- [ ] **Unlock: Debug**
+- [ ] Harvest: 1500 Wood
+- [ ] **Unlock: Fertilizer (2)**
+- [ ] Harvest: 1000 Wood, 1000 Hay
+- [ ] Plant: Trees and Carrots
+- [ ] Harvest: 1000 Carrots
+- [ ] **Unlock: Speed (5)**
+- [ ] Use: Water
+- [ ] Harvest: 6250 Wood
+- [ ] **Unlock: Carrots (4)**
+- [ ] Harvest: 500 Carrot
+- [ ] **Unlock: Sunflowers**
+- [ ] Plant: Trees and Grass
+- [ ] Harvest: 4800 Hay
+- [ ] **Unlock: Trees (4)**
+- [ ] Harvest: 12500 Wood
+- [ ] **Unlock: Grass (5)**
+- [ ] Harvest: 3200 Wood
+- [ ] **Unlock: Watering (4)**
+- [ ] Harvest: 9000 Wood
+- [ ] **Unlock: Fertilizer (3)**
+- [ ] Harvest: 108 Fertilizer
+- [ ] Use: Fertilizer (3 rounds)
+- [ ] Harvest: 1000 Weird Substance
+- [ ] **Unlock: Mazes (1)**
+- [ ] Stop Using: Fertilizer
+- [ ] Harvest: 19200 Hay
+- [ ] **Unlock: Trees (5)**
+- [ ] Harvest: 62500 Wood
+- [ ] **Unlock: Grass (6)**
+- [ ] Harvest: 12800 Wood
+- [ ] **Unlock: Watering (5)**
+- [ ] Harvest: 31200 Wood
+- [ ] **Unlock: Carrots (5)**
+- [ ] Harvest: 500 Wood, 200 Carrot
+- [ ] **Unlock: Pumpkins (1)**
+- [ ] Plant: Trees and Carrots
+- [ ] Harvest: 1000 Carrot
+- [ ] **Unlock: Pumpkins (2)**
+- [ ] Harvest: 4000 Carrots
+- [ ] **Unlock: Pumpkins (3)**
+- [ ] Harvest: 1000 Carrot
+- [ ] Refactor:
+  - [ ] Add Pumpkins.py
+  - [ ] Update Utilities.py
+    - [ ] Add 'Entities.Pumpkin' to cropsThatNeedSoil
+  - [ ] Update main.py
+- [ ] Plant: Pumpkins
+- [ ] Use: Fertilizer
+- [ ] Harvest: 1000 Pumpkins
+- [ ] **Unlock: Expand (5)**
+- [ ] Stop Using: Fertilizer
+- [ ] Plant: Trees and Carrots
+- [ ] Harvest: 51200 Wood
+- [ ] **Unlock: Watering (6)**
+- [ ] Harvest: 54000 Wood
+- [ ] **Unlock: Fertilizer (4)**
+- [ ] Harvest: 16000 Pumpkins
+- [ ] **Unlock: Pumpkins (4)**
+- [ ] Harvest: 10000 Carrots
+- [ ] Plant: Pumpkins
+- [ ] Use: As much Fertilizer as you have for a whole grid
+- [ ] Harvest: 2500 Pumpkins
+- [ ] **Unlock: Dictionaries**
+- [ ] Harvest: 3000 Pumpkins
+- [ ] **Unlock: Polyculture (1)**
+- [ ] Harvest: 5000 Pumpkins
+- [ ] **Unlock: Cactus (1)**
+- [ ] Harvest: 2500 Pumpkins
+- [ ] **Unlock: Costs**
+- [ ] Harvest: 1000 Pumpkins
+- [ ] **Unlock: Random**
+- [ ] Harvest: 1000 Pumpkins
+- [ ] **Unlock: Timing**
+- [ ] Plant: Grass and Trees
+- [ ] Harvest: 156K Wood
+- [ ] **Unlock: Carrots (6)**
+- [ ] Harvest: 76.8K Hay
+- [ ] **Unlock: Trees (6)**
+- [ ] Plant: Grass and Carrots
+- [ ] Harvest: 15K Hay, 15K Carrots
+- [ ] Plant: Pumpkins
+- [ ] Harvest: 20000 Pumpkins
+- [ ] **Unlock: Cactus (2)**
+- [ ] Harvest: 2000 Pumpkins
+- [ ] Refactor:
+  - [ ] Add Cacti.py
+  - [ ] Update Utilities.py
+    - [ ] Add 'Entities.Cactus' to cropsThatNeedSoil
+  - [ ] Update main.py
+- [ ] Plant: Cacti
+- [ ] Harvest: 2000 Cacti
+- [ ] **Unlock: Dinosaurs (1)**
+- [ ] Refactor:
+  - [ ] Add Bones.py
+  - [ ] Update main.py
+- [ ] Harvest: 12000 Cacti
+- [ ] **Unlock: Mazes (2)**
+- [ ] Refactor:
+  - [ ] Add Gold.py
+  - [ ] Update main.py
+- [ ] Harvest: 12000 Cacti
+- [ ] **Unlock: Dinosaurs (2)**
+- [ ] Plant: Maze
+- [ ] Harvest: 2000 Gold
+- [ ] **Unlock: Megafarm (1)**
+- [ ] Harvest: 500 Gold
+- [ ] **Unlock: Debug (2)**
+- [ ] Harvest: 8000 Gold
+- [ ] **Unlock: Megafarm (2)**
+- [ ] Harvest: 32K Gold - Keep farming Gold while refactoring.
+- [ ] Refactor:
+  - [ ] Add Drones.py
+  - [ ] Update StandardCrops.py
+    - [ ] Add Drones import
+    - [ ] Add CultivateCropsWithDrones()
+  - [ ] Update main.py
+- [ ] Harvest: 32K Gold
+- [ ] **Unlock: Megafarm (3)**
+- [ ] Plant w Drones: Grass and Trees
+- [ ] Harvest: 312000 Wood
+- [ ] **Unlock: Grass (7)**
+- [ ] Harvest: 307000 Hay
+- [ ] **Unlock: Trees (7)**
+- [ ] Harvest: 205000 Wood
+- [ ] **Unlock: Watering (7)**
+- [ ] Plant w Drones: Carrots and Trees
+- [ ] Harvest: 64000 Carrots
+- [ ] **Unlock: Pumpkins (5)**
+- [ ] Harvest: 781000 Wood
+- [ ] **Unlock: Carrots (7)**
+- [ ] Harvest: 50000 Carrots
+- [ ] Refactor:
+  - [ ] Update Pumpkins.py
+    - [ ] Add Drones import
+    - [ ] Add pumpkinTile(), sweepPumpkinStrip(), pumpkinStrip(), and CultivatePumpkinsWithDrones()
+  - [ ] Update main.py
+- [ ] Plant w Drones: Pumpkins
+- [ ] Harvest: 8000 Pumpkins
+- [ ] **Unlock: Expand (6)**
+- [ ] Harvest: 5000 Pumpkins
+- [ ] **Unlock: Auto Unlock**
+- [ ] Harvest: 65K Pumpkins
+- [ ] **Unlock: Expand (7)**
+- [ ] Harvest: 120K Pumpkins
+- [ ] **Unlock: Cactus (3)**
+- [ ] Harvest: 100K Pumpkins
+- [ ] Refactor:
+  - [ ] Update Cacti.py
+    - [ ] Add Drones import
+    - [ ] Add sortLine(), plantLine(), waitAndMeasureLine(), measureLine(), reversed_(), cactusColumnStrip(), cactusRowStrip(), runPhase(), and CultivateCactiWithDrones()
+  - [ ] Update main.py
+- [ ] Plant w Drones: Cacti
+- [ ] Harvest: 72000 Cacti
+- [ ] **Unlock: Mazes(3)**
+- [ ] Harvest: 432000 Cacti
+- [ ] **Unlock: Mazes(4)**
+- [ ] Harvest: 72000 Cacti
+- [ ] **Unlock: Dinosaurs (3)**
+- [ ] Harvest: 432000 Cacti
+- [ ] **Unlock: Dinosaurs (4)**
+- [ ] Plant: Maze
+- [ ] Harvest: 128000 Gold
+- [ ] **Unlock: Megafarm (4)**
+- [ ] Refactor:
+  - [ ] Add Globals.py
+  - [ ] Add GoldWithDrones.py
+  - [ ] Update main.py
+- [ ] Harvest: 512K Gold
+- [ ] **Unlock: Megafarm (5)**
+- [ ] Plant w Drones: Pumpkins
+- [ ] Harvest: 512K Pumpkins
+- [ ] **Unlock: Expand (8)**
+- [ ] Plant w Drones: Grass and Trees
+- [ ] Use: Water, Fertilizer
+- [ ] Harvest: 1.56M Wood
+- [ ] **Unlock: Grass (8)**
+- [ ] Harvest: 1.23M Hay
+- [ ] **Unlock: Trees (8)**
+- [ ] Harvest: 819K Wood
+- [ ] **Unlock: Watering (8)**
+- [ ] Harvest: 3.28M Wood
+- [ ] **Unlock: Watering (9)**
+- [ ] Harvest: 3.91M Wood
+- [ ] **Unlock: Carrots (8)**
+- [ ] Harvest: 7.81M Wood
+- [ ] **Unlock: Grass (9)**
+- [ ] Harvest: 4.92M Hay
+- [ ] **Unlock: Trees (9)**
+- [ ] Plant w Drones: Carrots and Grass
+- [ ] Harvest: 256K Carrots
+- [ ] **Unlock: Pumpkins (6)**
+- [ ] Harvest: 1.02M Carrots
+- [ ] **Unlock: Pumpkins (7)**
+- [ ] Plant w Drones: Carrots and Trees
+- [ ] Harvest: 1M Carrots
+- [ ] Plant w Drones: Pumpkins
+- [ ] Harvest: 1M Pumpkins
+- [ ] **Unlock: Cactus (4)**
+- [ ] Plant w Drones: Cacti
+- [ ] Harvest: 2.59M Cacti
+- [ ] **Unlock: Mazes (5)**
+- [ ] Harvest: 2.59M Cacti
+- [ ] **Unlock: Dinosaurs (5)**
+- [ ] Harvest: 5K Gold
+- [ ] **Unlock: Simulation**
+- [ ] Plant: Bones
+- [ ] Harvest: 10K Bones
+- [ ] **Unlock: Polyculture (2)**
+- [ ] Harvest: 50K Bones
+- [ ] **Unlock: Polyculture (3)**
+- [ ] Harvest: 250K Bones
+- [ ] **Unlock: Polyculture (4)**
+- [ ] Harvest: 1.25M Bones
+- [ ] **Unlock: Polyculture (5)**
+- [ ] Plant w Drones: Grass and Trees
+- [ ] Harvest: 39.1M Wood
+- [ ] **Unlock: Grass (10)**
+- [ ] Harvest: 19.7M Hay
+- [ ] **Unlock: Trees (10)**
+- [ ] Harvest: 19.5M Wood
+- [ ] **Unlock: Carrots (9)**
+- [ ] Harvest: 97.7M Wood
+- [ ] **Unlock: Carrots (10)**
+- [ ] Plant: Grass and Carrots
+- [ ] Harvest: 4.1M Carrots
+- [ ] **Unlock: Pumpkins (8)**
+- [ ] Harvest: 16.4M Carrots
+- [ ] **Unlock: Pumpkins (9)**
+- [ ] Harvest: 65.5M Carrots
+- [ ] **Unlock: Pumpkins (10)**
+- [ ] Harvest: 20M Carrots
+- [ ] Plant: Pumpkins
+- [ ] Harvest: 4.1M Pumpkins
+- [ ] **Unlock: Expand (9)**
+- [ ] Harvest: 4.32M Pumpkins
+- [ ] **Unlock: Cactus (5)**
+- [ ] Harvest: 25.9M Pumpkins
+- [ ] **Unlock: Cactus (6)**
+- [ ] Harvest: 8M Pumpkin
+- [ ] Plant w Drones: Cactus
+- [ ] Harvest: 15.6M Cacti
+- [ ] **Unlock: Mazes (6)**
+- [ ] Harvest: 15.6M Cacti
+- [ ] **Unlock: Dinosaurs (6)**
+- [ ] Plant w Drones: Maze
+- [ ] Harvest: 1M Gold
+- [ ] Plant: Bones
+- [ ] Harvest: 2M Bones
+- [ ] **Unlock: Leaderboard**
+- [ ] Harvest: 100M Bones
+- [ ] **Unlock: ?**
+- [ ] Harvest: 1B Hay, 100M Wood, 1B Carrot, 1B Cacti, 100M Gold
+- [ ] **Unlock: Top Hat**
+
+- [ ] **Fastest Reset**
