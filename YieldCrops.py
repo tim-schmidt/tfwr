@@ -17,6 +17,27 @@ from Utilities import *
 def orthogonal(n, x, y):
 	return [((x + 1) % n, y), ((x - 1) % n, y), (x, (y + 1) % n), (x, (y - 1) % n)]
 
+# Fixed layout: `share` percent of tiles are `primary`, the rest are
+# companion slots cycling through secondary, bush and carrot so any
+# request type can be met nearby. 50 is a checkerboard; 62, 75 and 87
+# thin the slots to a sparser lattice.
+def layoutCrop(x, y, primary, secondary, share):
+	slot = IsOdd(x + y)
+	if share >= 87:
+		slot = x % 4 == 1 and y % 2 == 1
+	elif share >= 75:
+		slot = x % 2 == 1 and y % 2 == 1
+	elif share >= 62:
+		slot = IsOdd(x + y) and x % 4 != 0
+	if not slot:
+		return primary
+	kind = (x + 2 * y) % 3
+	if kind == 0:
+		return secondary
+	if kind == 1:
+		return Entities.Bush
+	return Entities.Carrot
+
 # Primary unless an orthogonal neighbour we know of already holds it.
 def defaultCrop(n, x, y, primary, secondary, planted):
 	for q in orthogonal(n, x, y):
@@ -87,14 +108,17 @@ def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
 # Fill sweep from (0, 0). Grass is replaced; anything else was put there
 # by a helper and stays. Returns what main planted (helpers' plants are
 # not in it; readBoard() fills the gaps).
-def fillBoard(n, primary, secondary, water, fertilize, dispatch):
+def fillBoard(n, primary, secondary, water, fertilize, dispatch, share):
 	planted = {}
 	wanted = {}
 	helpers = []
 	for x in range(n):
 		for y in range(n):
 			tile = (x, y)
-			crop = defaultCrop(n, x, y, primary, secondary, planted)
+			if dispatch:
+				crop = defaultCrop(n, x, y, primary, secondary, planted)
+			else:
+				crop = layoutCrop(x, y, primary, secondary, share)
 			if tile in wanted:
 				crop = wanted[tile]
 			took = takeTile(crop, water, fertilize)
@@ -135,7 +159,9 @@ def readBoard(n, primary, secondary, water, fertilize):
 
 # Sweep until every plant's request is met. A ripe plant with an unmet
 # request is harvested and replanted with the same crop for a new request.
+# Returns the number of re-rolls.
 def rerollBoard(n, planted, primary, secondary, water, fertilize):
+	rolls = 0
 	while True:
 		unmet = 0
 		for x in range(n):
@@ -147,10 +173,11 @@ def rerollBoard(n, planted, primary, secondary, water, fertilize):
 						if can_harvest():
 							harvest()
 							replant(n, x, y, planted, primary, secondary, water, fertilize)
+							rolls += 1
 				move(North)
 			move(East)
 		if unmet == 0:
-			return
+			return rolls
 
 # Harvest every tile, waiting for each to ripen, replanting the same crop.
 def harvestBoard(n, planted, primary, secondary, water, fertilize):
@@ -164,18 +191,22 @@ def harvestBoard(n, planted, primary, secondary, water, fertilize):
 		move(East)
 
 # `rounds` of 0 runs forever. dispatch=False, reroll=False is a plain
-# checkerboard board, the baseline.
-def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0):
+# fixed-layout board, the baseline. `share` is the percent of tiles given
+# to `primary` when dispatch is off (see layoutCrop). Returns the number
+# of re-rolls over all rounds.
+def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0, share = 50):
 	clear()
 	RefreshSoilCrops()
 	n = get_world_size()
 	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
-	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch)
+	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch, share)
 	if dispatch:
 		planted = readBoard(n, primary, secondary, water, fertilize)
+	rolls = 0
 	done = 0
 	while rounds == 0 or done < rounds:
 		if reroll:
-			rerollBoard(n, planted, primary, secondary, water, fertilize)
+			rolls += rerollBoard(n, planted, primary, secondary, water, fertilize)
 		harvestBoard(n, planted, primary, secondary, water, fertilize)
 		done += 1
+	return rolls
