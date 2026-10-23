@@ -18,12 +18,15 @@ def orthogonal(n, x, y):
 	return [((x + 1) % n, y), ((x - 1) % n, y), (x, (y + 1) % n), (x, (y - 1) % n)]
 
 # Fixed layout: `share` percent of tiles are `primary`, the rest are
-# companion slots cycling through secondary, bush and carrot so any
-# request type can be met nearby. 50 is a checkerboard; 62, 75 and 87
-# thin the slots to a sparser lattice.
-def layoutCrop(x, y, primary, secondary, share):
+# companion slots. 50 is a checkerboard; 62, 75 and 87 thin the slots to
+# sparser lattices; 93 is four slots per 8x8 block, the fewest that keep
+# every tile within three moves of one. `slots` picks the slot crop:
+# None cycles secondary, bush, carrot; otherwise that one crop.
+def layoutCrop(x, y, primary, secondary, share, slots):
 	slot = IsOdd(x + y)
-	if share >= 87:
+	if share >= 93:
+		slot = x % 4 == 0 and y % 4 == (x // 4) % 2 * 2
+	elif share >= 87:
 		slot = x % 4 == 1 and y % 2 == 1
 	elif share >= 75:
 		slot = x % 2 == 1 and y % 2 == 1
@@ -31,6 +34,8 @@ def layoutCrop(x, y, primary, secondary, share):
 		slot = IsOdd(x + y) and x % 4 != 0
 	if not slot:
 		return primary
+	if slots != None:
+		return slots
 	kind = (x + 2 * y) % 3
 	if kind == 0:
 		return secondary
@@ -108,7 +113,7 @@ def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
 # Fill sweep from (0, 0). Grass is replaced; anything else was put there
 # by a helper and stays. Returns what main planted (helpers' plants are
 # not in it; readBoard() fills the gaps).
-def fillBoard(n, primary, secondary, water, fertilize, dispatch, share):
+def fillBoard(n, primary, secondary, water, fertilize, dispatch, share, slots):
 	planted = {}
 	wanted = {}
 	helpers = []
@@ -118,7 +123,7 @@ def fillBoard(n, primary, secondary, water, fertilize, dispatch, share):
 			if dispatch:
 				crop = defaultCrop(n, x, y, primary, secondary, planted)
 			else:
-				crop = layoutCrop(x, y, primary, secondary, share)
+				crop = layoutCrop(x, y, primary, secondary, share, slots)
 			if tile in wanted:
 				crop = wanted[tile]
 			took = takeTile(crop, water, fertilize)
@@ -191,15 +196,15 @@ def harvestBoard(n, planted, primary, secondary, water, fertilize):
 		move(East)
 
 # `rounds` of 0 runs forever. dispatch=False, reroll=False is a plain
-# fixed-layout board, the baseline. `share` is the percent of tiles given
-# to `primary` when dispatch is off (see layoutCrop). Returns the number
-# of re-rolls over all rounds.
-def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0, share = 50):
+# fixed-layout board, the baseline. `share` and `slots` shape the layout
+# when dispatch is off (see layoutCrop). Returns the number of re-rolls
+# over all rounds.
+def CultivateYieldBoard(primary, secondary, water = False, fertilize = False, dispatch = True, reroll = True, rounds = 0, share = 50, slots = None):
 	clear()
 	RefreshSoilCrops()
 	n = get_world_size()
 	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
-	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch, share)
+	planted = fillBoard(n, primary, secondary, water, fertilize, dispatch, share, slots)
 	if dispatch:
 		planted = readBoard(n, primary, secondary, water, fertilize)
 	rolls = 0
