@@ -12,6 +12,7 @@ from YieldCrops import CultivateYieldBoard
 
 set_world_size(WORLD)
 hay = num_items(Items.Hay)
+water = num_items(Items.Water)
 carrots = num_items(Items.Carrot)
 goal = (Items.Wood, num_items(Items.Wood) + TARGET)
 rolls = 0
@@ -25,4 +26,4 @@ elif MODE == 4:
 	CultivateCropsWithDrones(Entities.Tree, Entities.Grass, WATER, False, True, goal)
 elif MODE == 5:
 	rolls = CultivateYieldBoard(Entities.Tree, Entities.Grass, WATER, False, False, True, 0, 50, Entities.Bush, goal)
-quick_print("result world", WORLD, "mode", MODE, "water", WATER, "hay", num_items(Items.Hay) - hay, "carrots", num_items(Items.Carrot) - carrots, "rerolls", rolls)
+quick_print("result world", WORLD, "mode", MODE, "water", WATER, "hay", num_items(Items.Hay) - hay, "carrots", num_items(Items.Carrot) - carrots, "water used", water - num_items(Items.Water), "rerolls", rolls)
