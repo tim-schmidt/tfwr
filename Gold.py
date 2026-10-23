@@ -17,10 +17,11 @@ def scan(dirs, graph):
 # Depth-first walk of the whole maze. Fills graph (open exits per cell),
 # parent, depth and pdir (a spanning tree rooted where the walk began;
 # pdir[cell] is the direction from cell to its parent).
-def explore(dirs, delta, back, graph, parent, depth, pdir):
+def explore(dirs, delta, back, graph, parent, depth, pdir, order):
 	n = get_world_size()
 	stack = []
 	depth[here()] = 0
+	order.append(here())
 	while True:
 		pos = here()
 		if pos not in graph:
@@ -33,6 +34,7 @@ def explore(dirs, delta, back, graph, parent, depth, pdir):
 				parent[c] = pos
 				depth[c] = depth[pos] + 1
 				pdir[c] = back[d]
+				order.append(c)
 				stack.append(back[d])
 				went = True
 				break
@@ -72,21 +74,37 @@ def createMaze(substanceAmount):
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
+def substanceFor(size):
+	return size * 2**(num_unlocked(Unlocks.Mazes) - 1)
+
+# Explore the maze under the drone. Returns a dict of maps:
+#   graph  cell -> open directions      parent cell -> tree parent
+#   depth  cell -> tree depth           pdir   cell -> direction to parent
+#   order  cells in visit order         back   direction -> opposite
+#   delta  direction -> (dx, dy)
+def mapMaze():
+	m = {}
+	m["delta"] = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
+	m["back"] = {North: South, East: West, South: North, West: East}
+	m["graph"] = {}
+	m["parent"] = {}
+	m["depth"] = {}
+	m["pdir"] = {}
+	m["order"] = []
+	explore([North, East, South, West], m["delta"], m["back"], m["graph"], m["parent"], m["depth"], m["pdir"], m["order"])
+	return m
+
 # One maze under the drone: build it, explore it, relocate the treasure
 # `reuses` times, harvest. Returns the explored graph.
 def goldMaze(size, reuses):
-	substanceAmount = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
+	substanceAmount = substanceFor(size)
 	createMaze(substanceAmount)
-
-	dirs = [North, East, South, West]
-	delta = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
-	back = {North: South, East: West, South: North, West: East}
-	graph = {}    # cell -> list of open directions (used by explore)
-	parent = {}   # cell -> the cell it was first reached from
-	depth = {}    # cell -> distance from the start cell along the tree
-	pdir = {}     # cell -> direction from the cell to its parent
-
-	explore(dirs, delta, back, graph, parent, depth, pdir)
+	m = mapMaze()
+	graph = m["graph"]
+	parent = m["parent"]
+	depth = m["depth"]
+	pdir = m["pdir"]
+	back = m["back"]
 
 	for i in range(reuses):
 		goal = measure()
@@ -95,6 +113,11 @@ def goldMaze(size, reuses):
 			return graph
 		go_to(parent, depth, pdir, back, goal)
 		use_item(Items.Weird_Substance, substanceAmount)
+	# Harvesting on the treasure pays one more unit; anywhere else only
+	# clears the maze.
+	goal = measure()
+	if goal != None:
+		go_to(parent, depth, pdir, back, goal)
 	harvest()
 	return graph
 
@@ -157,6 +180,90 @@ def CultivateGoldInSectors(size, reuses = 300, rounds = 0):
 				else:
 					workers.append(drone)
 		sectorWorker(n, half, half, size, reuses, deadline)
+		for drone in workers:
+			wait_for(drone)
+		done += 1
+
+# ---------------- many drones, one maze ----------------
+# Every cell is owned by the drone whose home is nearest along the maze.
+# Multi-source breadth-first search over the open exits.
+def ownerMap(n, m, homes):
+	owner = {}
+	queue = []
+	for i in range(len(homes)):
+		owner[homes[i]] = i
+		queue.append(homes[i])
+	k = 0
+	while k < len(queue):
+		cell = queue[k]
+		k += 1
+		for d in m["graph"][cell]:
+			c = step(n, m["delta"], cell, d)
+			if c not in owner:
+				owner[c] = owner[cell]
+				queue.append(c)
+	return owner
+
+# Serve one maze. `mine` holds the owner ids this drone answers for.
+# Walk home from the root, then: whenever the treasure sits on a cell we
+# own, walk there and relocate it, or harvest it on the last relocation.
+# Everyone sees the maze vanish through measure() and returns. Relocations
+# so far are read from the shared substance count, so no messages needed.
+def serveMaze(mine, home, m, owner, amount, start, reuses):
+	parent = m["parent"]
+	depth = m["depth"]
+	pdir = m["pdir"]
+	back = m["back"]
+	go_to(parent, depth, pdir, back, home)
+	while True:
+		target = measure()
+		if target == None:
+			return
+		if owner[target] in mine:
+			go_to(parent, depth, pdir, back, target)
+			if (start - num_items(Items.Weird_Substance)) // amount >= reuses:
+				harvest()
+				return
+			use_item(Items.Weird_Substance, amount)
+
+# Worker entry point.
+def mazeWorker(me, home, m, owner, amount, start, reuses):
+	serveMaze({me: True}, home, m, owner, amount, start, reuses)
+
+# Many drones share one maze. Main builds and maps the maze, picks a home
+# per drone spread along the exploration order, hands every worker the
+# map and owner table through spawn_drone, and serves as drone 0 itself.
+# Ids whose spawn fails are served by main. `rounds` of 0 runs forever.
+def CultivateGoldWithDrones(size = 0, reuses = 300, rounds = 0):
+	n = get_world_size()
+	if size == 0:
+		size = n
+	amount = substanceFor(size)
+
+	done = 0
+	while rounds == 0 or done < rounds:
+		createMaze(amount)
+		start = num_items(Items.Weird_Substance)
+		m = mapMaze()
+		order = m["order"]
+
+		count = max_drones()
+		if count > len(order):
+			count = len(order)
+		homes = []
+		for i in range(count):
+			homes.append(order[(i * len(order)) // count])
+		owner = ownerMap(n, m, homes)
+
+		workers = []
+		mine = {0: True}
+		for i in range(1, count):
+			drone = spawn_drone(mazeWorker, i, homes[i], m, owner, amount, start, reuses)
+			if drone == None:
+				mine[i] = True
+			else:
+				workers.append(drone)
+		serveMaze(mine, homes[0], m, owner, amount, start, reuses)
 		for drone in workers:
 			wait_for(drone)
 		done += 1
