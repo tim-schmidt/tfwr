@@ -58,61 +58,20 @@ def tree_path(parent, depth, start, goal):
 		j -= 1
 	return path
 
-# Index of every cell on the path, for shortcut checks.
-def path_index(path):
-	index = {}
-	for k in range(len(path)):
-		index[path[k]] = k
-	return index
-
-# Variant 0: tree path; at each step look at all four neighbours and jump
-# ahead along the path wherever a removed hedge allows. Neighbour tuples and
-# index lookups happen before can_move.
-def go_to_scan(dirs, delta, dir_of, parent, depth, goal):
-	path = tree_path(parent, depth, here(), goal)
-	index = path_index(path)
-	k = 0
-	while k < len(path) - 1:
-		pos = path[k]
-		best = k + 1
-		for d in dirs:
-			c = step(delta, pos, d)
-			if c in index and index[c] > best and can_move(d):
-				best = index[c]
-		move(dir_to(dir_of, pos, path[best]))
-		k = best
-
-# Variant 1: tree path only, no shortcut checks.
-def go_to_lean(dir_of, parent, depth, goal):
+# Walk the tree path from here to goal. Shortcut checks through removed
+# hedges were measured in simulation and cost more than they save.
+def go_to(dir_of, parent, depth, goal):
 	path = tree_path(parent, depth, here(), goal)
 	for k in range(len(path) - 1):
 		move(dir_to(dir_of, path[k], path[k + 1]))
-
-# Variant 2: same shortcuts as variant 0, but can_move first so blocked
-# directions cost one tick, and if-chains instead of `and`.
-def go_to_fast(dirs, delta, dir_of, parent, depth, goal):
-	path = tree_path(parent, depth, here(), goal)
-	index = path_index(path)
-	k = 0
-	while k < len(path) - 1:
-		pos = path[k]
-		best = k + 1
-		for d in dirs:
-			if can_move(d):
-				c = step(delta, pos, d)
-				if c in index:
-					if index[c] > best:
-						best = index[c]
-		move(dir_to(dir_of, pos, path[best]))
-		k = best
 
 def createMaze(substanceAmount):
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
 # One maze: build it, explore it, relocate the treasure `reuses` times,
-# harvest. `variant` picks the walking strategy (see go_to_* above).
-def CultivateGold(variant = 0, reuses = 300):
+# harvest.
+def CultivateGold(reuses = 300):
 	substanceAmount = get_world_size() * 2**(num_unlocked(Unlocks.Mazes) - 1)
 	createMaze(substanceAmount)
 
@@ -127,12 +86,6 @@ def CultivateGold(variant = 0, reuses = 300):
 	explore(dirs, delta, back, graph, parent, depth)
 
 	for i in range(reuses):
-		goal = measure()
-		if variant == 1:
-			go_to_lean(dir_of, parent, depth, goal)
-		elif variant == 2:
-			go_to_fast(dirs, delta, dir_of, parent, depth, goal)
-		else:
-			go_to_scan(dirs, delta, dir_of, parent, depth, goal)
+		go_to(dir_of, parent, depth, measure())
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
