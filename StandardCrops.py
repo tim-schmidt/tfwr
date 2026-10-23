@@ -1,40 +1,30 @@
 from Utilities import *
 from Drones import *
 
-# Single drone. Checkerboard of primaryCrop (even x + y) and secondaryCrop.
-# Only touches a tile when it is ripe or empty.
-def CultivateCrops(primaryCrop, secondaryCrop, water = False, fertilize = False):
-	while True:
-		for x in range(get_world_size()):
-			for y in range(get_world_size()):
-				crop = primaryCrop
-				if IsOdd(x + y):
-					crop = secondaryCrop
+# Single drone: the whole farm is one strip. Checkerboard of primaryCrop
+# (even x + y) and secondaryCrop. `companions` turns on polyculture
+# planting (needs the Polyculture unlock). `until` is None or
+# (item, amount) to stop at.
+def CultivateCrops(primaryCrop, secondaryCrop, water = False, fertilize = False, companions = False, until = None):
+	n = get_world_size()
+	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
+	farmStrip(n, primaryCrop, secondaryCrop, water, fertilize, companions, until)
 
-				if can_harvest():
-					harvest()
-					TillIfNeeded(crop)
-					plant(crop)
-					FertilizeIfWanted(fertilize)
-				elif get_entity_type() == None:
-					TillIfNeeded(crop)
-					plant(crop)
-					FertilizeIfWanted(fertilize)
-				WaterIfWanted(water)
-
-				move(North)
-			move(East)
-
-def CultivateCropsWithDrones(primaryCrop, secondaryCrop, water = False, fertilize = False):
+def CultivateCropsWithDrones(primaryCrop, secondaryCrop, water = False, fertilize = False, companions = False, until = None):
 	clear()
 	n, w, d = layout()
 
 	while get_pos_x() != 0:
 		move(West)
 
+	workers = []
 	for k in range(d - 1):
-		if spawn_drone(worker, primaryCrop, secondaryCrop, water, fertilize) == None:
+		drone = spawn_drone(worker, primaryCrop, secondaryCrop, water, fertilize, companions, until)
+		if drone == None:
 			break
+		workers.append(drone)
 		for _ in range(w):
 			move(East)
-	worker(primaryCrop, secondaryCrop, water, fertilize)
+	worker(primaryCrop, secondaryCrop, water, fertilize, companions, until)
+	for drone in workers:
+		wait_for(drone)

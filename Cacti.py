@@ -93,6 +93,7 @@ def goHome():
 
 # Single drone: columns, then rows, then one harvest for the whole field.
 def CultivateCacti(water = False, fertilize = False):
+	RefreshSoilCrops()
 	n = get_world_size()
 	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin]:
 		goHome()
@@ -104,6 +105,7 @@ def CultivateCacti(water = False, fertilize = False):
 # Drone strip workers. Both take the same arguments so runPhase can spawn
 # either; the row phase has nothing to plant.
 def cactusColumnStrip(water = False, fertilize = False):
+	RefreshSoilCrops()
 	n, w, d = layout()
 	cactusColumns(n, min(w, n - get_pos_x()), water, fertilize)
 

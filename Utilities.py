@@ -1,9 +1,18 @@
-# Starts empty. Append each crop when its first unlock level lands:
-#   Unlocks.Carrots    -> Entities.Carrot
-#   Unlocks.Sunflowers -> Entities.Sunflower
-#   Unlocks.Pumpkins   -> Entities.Pumpkin
-#   Unlocks.Cactus     -> Entities.Cactus
+# Crops that only grow on soil. Rebuilt from the unlock tree by
+# RefreshSoilCrops(); an entity is only named once its unlock is owned.
 CROPS_NEEDING_SOIL = []
+
+def RefreshSoilCrops():
+	while len(CROPS_NEEDING_SOIL) > 0:
+		CROPS_NEEDING_SOIL.pop()
+	if num_unlocked(Unlocks.Carrots) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Carrot)
+	if num_unlocked(Unlocks.Sunflowers) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Sunflower)
+	if num_unlocked(Unlocks.Pumpkins) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Pumpkin)
+	if num_unlocked(Unlocks.Cactus) > 0:
+		CROPS_NEEDING_SOIL.append(Entities.Cactus)
 
 def IsEven(number):
 	return number % 2 == 0
@@ -22,13 +31,22 @@ def TillIfNeeded(crop):
 	if NeedsSoil(crop) and get_ground_type() != Grounds.Soil:
 		till()
 
-# Water the tile when its water level is under `threshold`. Growth speed
-# is 1x at water 0 and 5x at water 1, and each watering adds 0.25, so a
-# threshold of 0.75 keeps the level in the 0.75 to 1.0 band without
-# overshooting the cap.
+# Water the tile when its water level is under `threshold` and a tank is
+# in stock. Growth speed is 1x at water 0 and 5x at water 1, and each
+# watering adds 0.25, so a threshold of 0.75 keeps the level in the 0.75
+# to 1.0 band without overshooting the cap. The stock check costs one tick
+# and spares the failed-use warning when income has not caught up.
 def WaterIfWanted(wanted = False, threshold = 0.75):
-	if wanted and get_water() < threshold:
+	if wanted and get_water() < threshold and num_items(Items.Water) > 0:
 		use_item(Items.Water)
+
+# True when every item in the crop's planting cost is in stock.
+def CanAfford(crop):
+	cost = get_cost(crop)
+	for item in cost:
+		if num_items(item) < cost[item]:
+			return False
+	return True
 
 def FertilizeIfWanted(wanted = False):
 	if not wanted:
