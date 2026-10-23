@@ -69,9 +69,11 @@ def createMaze(substanceAmount):
 	use_item(Items.Weird_Substance, substanceAmount)
 
 # One maze: build it, explore it, relocate the treasure `reuses` times,
-# harvest.
-def CultivateGold(reuses = 300):
-	substanceAmount = get_world_size() * 2**(num_unlocked(Unlocks.Mazes) - 1)
+# harvest. `size` is the maze size; 0 means the whole farm.
+def CultivateGold(size = 0, reuses = 300):
+	if size == 0:
+		size = get_world_size()
+	substanceAmount = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
 	createMaze(substanceAmount)
 
 	dirs = [North, East, South, West]
