@@ -121,15 +121,17 @@ def mazeBounds(graph):
 		maxY = max(maxY, cell[1])
 	return (minX, minY, maxX, maxY)
 
-# Sector worker. Walks from (0, 0) over the open field to its sector
-# origin, waits for the shared deadline so every drone is in place before
-# any hedges appear, then farms one maze there.
-def sectorWorker(n, ox, oy, size, reuses, deadline):
-	MoveTo(n, 0, 0, ox, oy)
+# Sector worker. Walks from (0, 0) over the open field to its sector's
+# center tile, waits for the shared deadline so every drone is in place
+# before any hedges appear, then farms one maze there. A maze spawns
+# centered on the drone (offset size // 2 down and left), so spawning from
+# the center puts it exactly on the sector.
+def sectorWorker(n, cx, cy, size, reuses, deadline):
+	MoveTo(n, 0, 0, cx, cy)
 	while get_time() < deadline:
 		pass
 	graph = goldMaze(size, reuses)
-	quick_print("sector origin", (ox, oy), "maze bounds", mazeBounds(graph))
+	quick_print("sector center", (cx, cy), "maze bounds", mazeBounds(graph))
 
 # Many drones, one maze each, on a grid of square sectors of side `size`.
 # `rounds` of 0 means run forever.
@@ -148,16 +150,17 @@ def CultivateGoldInSectors(size, reuses = 300, rounds = 0):
 	while rounds == 0 or done < rounds:
 		deadline = get_time() + perMove * (2 * n + 4)
 		workers = []
+		half = size // 2
 		for i in range(k):
 			for j in range(k):
 				if i == 0 and j == 0:
 					continue
-				drone = spawn_drone(sectorWorker, n, i * size, j * size, size, reuses, deadline)
+				drone = spawn_drone(sectorWorker, n, i * size + half, j * size + half, size, reuses, deadline)
 				if drone == None:
 					quick_print("no drone for sector", (i, j))
 				else:
 					workers.append(drone)
-		sectorWorker(n, 0, 0, size, reuses, deadline)
+		sectorWorker(n, half, half, size, reuses, deadline)
 		for drone in workers:
 			wait_for(drone)
 		done += 1

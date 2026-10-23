@@ -7,7 +7,7 @@ from SimGlobals import SIM_GLOBALS
 items = {Items.Weird_Substance: 1000000000, Items.Power: 1000000000}
 seeds = [1, 2, 3]
 world = 16
-sizes = [16, 8, 4]
+sizes = [8, 4]
 speedup = 256
 
 SIM_GLOBALS["WORLD"] = world
