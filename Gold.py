@@ -113,6 +113,11 @@ def goldMaze(size, reuses):
 			return graph
 		go_to(parent, depth, pdir, back, goal)
 		use_item(Items.Weird_Substance, substanceAmount)
+	# Harvesting on the treasure pays one more unit; anywhere else only
+	# clears the maze.
+	goal = measure()
+	if goal != None:
+		go_to(parent, depth, pdir, back, goal)
 	harvest()
 	return graph
 
