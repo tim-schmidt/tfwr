@@ -4,9 +4,6 @@ def here():
 def step(delta, pos, d):
 	return (pos[0] + delta[d][0], pos[1] + delta[d][1])
 
-def dir_to(dir_of, a, b):
-	return dir_of[(b[0] - a[0], b[1] - a[1])]
-
 def scan(dirs, graph):
 	exits = []
 	for d in dirs:
@@ -15,8 +12,9 @@ def scan(dirs, graph):
 	graph[here()] = exits
 
 # Depth-first walk of the whole maze. Fills graph (open exits per cell),
-# parent and depth (a spanning tree rooted where the walk began).
-def explore(dirs, delta, back, graph, parent, depth):
+# parent, depth and pdir (a spanning tree rooted where the walk began;
+# pdir[cell] is the direction from cell to its parent).
+def explore(dirs, delta, back, graph, parent, depth, pdir):
 	stack = []
 	depth[here()] = 0
 	while True:
@@ -30,6 +28,7 @@ def explore(dirs, delta, back, graph, parent, depth):
 				move(d)
 				parent[n] = pos
 				depth[n] = depth[pos] + 1
+				pdir[n] = back[d]
 				stack.append(back[d])
 				went = True
 				break
@@ -38,32 +37,31 @@ def explore(dirs, delta, back, graph, parent, depth):
 				return
 			move(stack.pop())
 
-# Cells from start to goal along the spanning tree, both ends included.
-def tree_path(parent, depth, start, goal):
+# Directions to walk from start to goal along the spanning tree. Climbs
+# from both ends toward the root until the climbs meet.
+def tree_route(parent, depth, pdir, back, start, goal):
 	a = start
 	b = goal
-	path = []        # cells from start upward
-	tail = []        # cells from goal upward, walked in reverse later
+	route = []       # moves from start upward
+	tail = []        # moves from goal upward, reversed and flipped later
 	while a != b:
 		if depth[a] >= depth[b]:
-			path.append(a)
+			route.append(pdir[a])
 			a = parent[a]
 		else:
-			tail.append(b)
+			tail.append(back[pdir[b]])
 			b = parent[b]
-	path.append(a)   # meeting point
 	j = len(tail) - 1
 	while j >= 0:
-		path.append(tail[j])
+		route.append(tail[j])
 		j -= 1
-	return path
+	return route
 
-# Walk the tree path from here to goal. Shortcut checks through removed
+# Walk the tree route from here to goal. Shortcut checks through removed
 # hedges were measured in simulation and cost more than they save.
-def go_to(dir_of, parent, depth, goal):
-	path = tree_path(parent, depth, here(), goal)
-	for k in range(len(path) - 1):
-		move(dir_to(dir_of, path[k], path[k + 1]))
+def go_to(parent, depth, pdir, back, goal):
+	for d in tree_route(parent, depth, pdir, back, here(), goal):
+		move(d)
 
 def createMaze(substanceAmount):
 	plant(Entities.Bush)
@@ -77,15 +75,15 @@ def CultivateGold(reuses = 300):
 
 	dirs = [North, East, South, West]
 	delta = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
-	dir_of = {(0, 1): North, (1, 0): East, (0, -1): South, (-1, 0): West}
 	back = {North: South, East: West, South: North, West: East}
 	graph = {}    # cell -> list of open directions (used by explore)
 	parent = {}   # cell -> the cell it was first reached from
 	depth = {}    # cell -> distance from the start cell along the tree
+	pdir = {}     # cell -> direction from the cell to its parent
 
-	explore(dirs, delta, back, graph, parent, depth)
+	explore(dirs, delta, back, graph, parent, depth, pdir)
 
 	for i in range(reuses):
-		go_to(dir_of, parent, depth, measure())
+		go_to(parent, depth, pdir, back, measure())
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
