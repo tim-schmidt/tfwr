@@ -27,9 +27,10 @@ def defaultCrop(n, x, y, primary, secondary, planted):
 
 # Returns whether the plant went in (False when the crop is unaffordable).
 def putPlant(crop, water, fertilize):
-	TillIfNeeded(crop)
-	if not plant(crop):
+	if not CanAfford(crop):
 		return False
+	TillIfNeeded(crop)
+	plant(crop)
 	WaterIfWanted(water)
 	FertilizeIfWanted(fertilize)
 	return True
@@ -45,28 +46,33 @@ def replant(n, x, y, planted, primary, secondary, water, fertilize):
 			putPlant(crop, water, fertilize)
 		planted[(x, y)] = crop
 
-# Replace whatever grass stands here with `crop`. Bare grassland grows
-# grass on its own, so grass is never "taken". Returns False when the
-# tile holds something else or the crop cannot be planted.
+# Put `crop` on this tile. Bare grassland grows grass on its own, so grass
+# is replaced; any other crop stays. Returns 1 when we planted, 0 when the
+# crop already stood here, -1 when the tile is taken or the crop is
+# unaffordable.
 def takeTile(crop, water, fertilize):
 	entity = get_entity_type()
+	if entity == crop:
+		return 0
+	if not CanAfford(crop):
+		return -1
 	if entity == Entities.Grass:
-		if crop == Entities.Grass:
-			return True
 		while not can_harvest():
 			pass
 		harvest()
 	elif entity != None:
-		return entity == crop
-	return putPlant(crop, water, fertilize)
+		return -1
+	putPlant(crop, water, fertilize)
+	return 1
 
-# Helper drone. Walks from (fx, fy) to (x, y), plants `crop` there unless
-# the tile holds another crop, then follows the plant's own request, and
-# so on, until a requested tile is taken.
+# Helper drone. Walks from (fx, fy) to (x, y), plants `crop` there, then
+# follows the new plant's own request, and so on. The chain ends at a tile
+# that is taken, unaffordable, or already holds the crop (whoever planted
+# it dispatched its request).
 def plantCompanion(n, fx, fy, x, y, crop, water, fertilize):
 	while True:
 		MoveTo(n, fx, fy, x, y)
-		if not takeTile(crop, water, fertilize):
+		if takeTile(crop, water, fertilize) != 1:
 			return
 		ask = get_companion()
 		if ask == None:
@@ -90,8 +96,15 @@ def fillBoard(n, primary, secondary, water, fertilize, dispatch):
 			crop = defaultCrop(n, x, y, primary, secondary, planted)
 			if tile in wanted:
 				crop = wanted[tile]
-			if takeTile(crop, water, fertilize):
+			took = takeTile(crop, water, fertilize)
+			if took == -1:
+				crop = defaultCrop(n, x, y, primary, secondary, planted)
+				took = takeTile(crop, water, fertilize)
+			if took >= 0:
 				planted[tile] = crop
+			else:
+				planted[tile] = get_entity_type()
+			if took == 1:
 				if dispatch:
 					ask = get_companion()
 					if ask != None:

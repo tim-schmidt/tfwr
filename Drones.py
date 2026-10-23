@@ -56,19 +56,11 @@ def plantTile(n, x, y, crop, poly):
 	tile = (x, y)
 	wanted = poly["wanted"]
 	if tile in wanted:
-		if not sameNeighbour(n, x, y, wanted[tile], poly):
-			TillIfNeeded(wanted[tile])
-			if plant(wanted[tile]):
+		if CanAfford(wanted[tile]):
+			if not sameNeighbour(n, x, y, wanted[tile], poly):
 				crop = wanted[tile]
-			else:
-				TillIfNeeded(crop)
-				plant(crop)
-		else:
-			TillIfNeeded(crop)
-			plant(crop)
-	else:
-		TillIfNeeded(crop)
-		plant(crop)
+	TillIfNeeded(crop)
+	plant(crop)
 	poly["planted"][tile] = crop
 	ask = get_companion()
 	if ask != None:

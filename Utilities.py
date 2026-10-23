@@ -30,6 +30,14 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 	if wanted and get_water() < threshold:
 		use_item(Items.Water)
 
+# True when every item in the crop's planting cost is in stock.
+def CanAfford(crop):
+	cost = get_cost(crop)
+	for item in cost:
+		if num_items(item) < cost[item]:
+			return False
+	return True
+
 def FertilizeIfWanted(wanted = False):
 	if not wanted:
 		return
