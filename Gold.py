@@ -93,7 +93,11 @@ def goldMaze(size, reuses):
 	explore(dirs, delta, back, graph, parent, depth, pdir)
 
 	for i in range(reuses):
-		go_to(parent, depth, pdir, back, measure())
+		goal = measure()
+		if goal == None:
+			quick_print("goldMaze: maze gone after", i, "relocations at", here())
+			return graph
+		go_to(parent, depth, pdir, back, goal)
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
 	return graph
