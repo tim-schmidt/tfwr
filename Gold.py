@@ -1,3 +1,5 @@
+from Utilities import *
+
 def here():
 	return (get_pos_x(), get_pos_y())
 
@@ -68,11 +70,9 @@ def createMaze(substanceAmount):
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
-# One maze: build it, explore it, relocate the treasure `reuses` times,
-# harvest. `size` is the maze size; 0 means the whole farm.
-def CultivateGold(size = 0, reuses = 300):
-	if size == 0:
-		size = get_world_size()
+# One maze under the drone: build it, explore it, relocate the treasure
+# `reuses` times, harvest. Returns the explored graph.
+def goldMaze(size, reuses):
 	substanceAmount = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
 	createMaze(substanceAmount)
 
@@ -90,3 +90,64 @@ def CultivateGold(size = 0, reuses = 300):
 		go_to(parent, depth, pdir, back, measure())
 		use_item(Items.Weird_Substance, substanceAmount)
 	harvest()
+	return graph
+
+# Single drone. `size` is the maze size; 0 means the whole farm.
+def CultivateGold(size = 0, reuses = 300):
+	if size == 0:
+		size = get_world_size()
+	goldMaze(size, reuses)
+
+# Bounding box of the explored cells: (minX, minY, maxX, maxY).
+def mazeBounds(graph):
+	minX = get_world_size()
+	minY = minX
+	maxX = 0
+	maxY = 0
+	for cell in graph:
+		minX = min(minX, cell[0])
+		minY = min(minY, cell[1])
+		maxX = max(maxX, cell[0])
+		maxY = max(maxY, cell[1])
+	return (minX, minY, maxX, maxY)
+
+# Sector worker. Walks from (0, 0) over the open field to its sector
+# origin, waits for the shared deadline so every drone is in place before
+# any hedges appear, then farms one maze there.
+def sectorWorker(n, ox, oy, size, reuses, deadline):
+	MoveTo(n, 0, 0, ox, oy)
+	while get_time() < deadline:
+		pass
+	graph = goldMaze(size, reuses)
+	quick_print("sector origin", (ox, oy), "maze bounds", mazeBounds(graph))
+
+# Many drones, one maze each, on a grid of square sectors of side `size`.
+# `rounds` of 0 means run forever.
+def CultivateGoldInSectors(size, reuses = 300, rounds = 0):
+	n = get_world_size()
+	k = n // size
+	MoveTo(n, get_pos_x(), get_pos_y(), 0, 0)
+
+	# Seconds per move at the current speed, for the arrival deadline.
+	t0 = get_time()
+	move(East)
+	move(West)
+	perMove = (get_time() - t0) / 2
+
+	done = 0
+	while rounds == 0 or done < rounds:
+		deadline = get_time() + perMove * (2 * n + 4)
+		workers = []
+		for i in range(k):
+			for j in range(k):
+				if i == 0 and j == 0:
+					continue
+				drone = spawn_drone(sectorWorker, n, i * size, j * size, size, reuses, deadline)
+				if drone == None:
+					quick_print("no drone for sector", (i, j))
+				else:
+					workers.append(drone)
+		sectorWorker(n, 0, 0, size, reuses, deadline)
+		for drone in workers:
+			wait_for(drone)
+		done += 1
