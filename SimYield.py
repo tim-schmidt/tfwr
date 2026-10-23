@@ -3,7 +3,7 @@
 # yield and the times for cost. Run this file directly in the game.
 from SimGlobals import SIM_GLOBALS
 
-items = {Items.Power: 1000000000}
+items = {Items.Power: 1000000000, Items.Hay: 1000000000, Items.Wood: 1000000000, Items.Carrot: 1000000000}
 seeds = [1, 2, 3]
 world = 8
 speedup = 256
