@@ -26,9 +26,11 @@ def prep_column(n, x, a, b, water, fertilize, poly):
 		WaterIfWanted(water)
 		if can_harvest():
 			harvest()
-			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
+			met = plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize and met)
 		elif get_entity_type() == None:
-			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
+			met = plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize and met)
 		move(North)
 		a, b = b, a
 
@@ -91,9 +93,11 @@ def farm_column(n, x, a, b, water, fertilize, poly):
 	for y in range(n):
 		if can_harvest():
 			harvest()
-			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
+			met = plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize and met)
 		elif get_entity_type() == None:
-			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
+			met = plantTile(n, x, y, a, poly)
+			FertilizeIfWanted(fertilize and met)
 		WaterIfWanted(water)
 		move(North)
 		a, b = b, a
