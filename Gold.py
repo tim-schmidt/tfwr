@@ -70,7 +70,14 @@ def go_to(parent, depth, pdir, back, goal):
 	for d in route:
 		move(d)
 
+# The maze needs a bush under the drone and a free farm around it. After a
+# crop phase the tile holds something else and plant() would fail, so the
+# farm is cleared first and the regrown grass harvested off the tile.
 def createMaze(substanceAmount):
+	clear()
+	while get_entity_type() != None:
+		if can_harvest():
+			harvest()
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
