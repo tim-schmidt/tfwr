@@ -102,17 +102,23 @@ def farm(item, amount):
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
 		farmCrops(woodCrop(), Entities.Grass, True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
-		ensurePlantable(Entities.Pumpkin, n * n)
-		if dronesOn():
-			CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
-		else:
-			CultivatePumpkins(have(Unlocks.Watering), False, until)
+		# Pumpkins cost carrots per planting; stock a few boards' worth,
+		# grow until it runs out or the target is met, restock, repeat.
+		while not Reached(until):
+			ensurePlantable(Entities.Pumpkin, 4 * n * n)
+			if dronesOn():
+				CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
+			else:
+				CultivatePumpkins(have(Unlocks.Watering), False, until)
 	elif have(Unlocks.Cactus) and item == Items.Cactus:
-		ensurePlantable(Entities.Cactus, n * n + 1)
-		if dronesOn():
-			CultivateCactiWithDrones(have(Unlocks.Watering), False, until)
-		else:
-			CultivateCacti(have(Unlocks.Watering), False, until)
+		# Cacti cost pumpkins per planting; same restock loop. The cactus
+		# code itself stops when a full board can no longer be planted.
+		while not Reached(until):
+			ensurePlantable(Entities.Cactus, 4 * n * n + 1)
+			if dronesOn():
+				CultivateCactiWithDrones(have(Unlocks.Watering), False, until)
+			else:
+				CultivateCacti(have(Unlocks.Watering), False, until)
 	elif have(Unlocks.Dinosaurs) and item == Items.Bone:
 		need = CactiForFullGrid(n) + 1
 		if num_items(Items.Cactus) < need:
