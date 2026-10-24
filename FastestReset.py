@@ -19,9 +19,10 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 #   Fertilizer 3, Mazes 4, Dinosaurs 4, Expand 7 (16x16), Polyculture 1.
 # Bones at Dinosaurs 4 take four full 16x16 snakes (520k each).
 # Megafarm 1 and 2 moved up to right after Mazes 1 (cheap in gold, and the
-# drones speed up every later phase); Megafarm 3 and 4 right after Mazes 2,
-# where a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
+# drones speed up every later phase); Megafarm 3 right after Mazes 2, where
+# a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
 # Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
+# Megafarm 4 and 5 stay after Mazes 4, where gold is cheapest.
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -75,7 +76,6 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
 	(Unlocks.Megafarm, 3),
-	(Unlocks.Megafarm, 4),
 	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
@@ -86,6 +86,7 @@ ROUTE = [
 	(Unlocks.Mazes, 4),
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
+	(Unlocks.Megafarm, 4),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
