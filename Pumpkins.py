@@ -42,11 +42,12 @@ def growPumpkinStrip(n, w, water, fertilize):
 
 # Single drone: the whole field is one strip. A fully ripe field has merged
 # into one giant pumpkin, so a single harvest takes all of it.
-def CultivatePumpkins(water = False, fertilize = False):
+# `until` is None or (item, amount) to stop at, checked after each harvest.
+def CultivatePumpkins(water = False, fertilize = False, until = None):
 	RefreshSoilCrops()
 	clear()
 	n = get_world_size()
-	while True:
+	while not Reached(until):
 		growPumpkinStrip(n, n, water, fertilize)
 		harvest()
 
@@ -56,13 +57,13 @@ def pumpkinStrip(water = False, fertilize = False):
 	n, w, d = layout()
 	growPumpkinStrip(n, min(w, n - get_pos_x()), water, fertilize)
 
-def CultivatePumpkinsWithDrones(water = False, fertilize = False):
+def CultivatePumpkinsWithDrones(water = False, fertilize = False, until = None):
 	clear()
 	n, w, d = layout()
 	while get_pos_x() != 0:
 		move(West)
 
-	while True:
+	while not Reached(until):
 		workers = []
 		x = 0
 

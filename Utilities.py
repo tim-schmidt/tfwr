@@ -49,11 +49,14 @@ def CanAfford(crop):
 	return True
 
 def FertilizeIfWanted(wanted = False):
-	if not wanted:
-		return
-
-	if num_items(Items.Fertilizer) > 0:
+	if wanted and num_items(Items.Fertilizer) > 0:
 		use_item(Items.Fertilizer)
+
+# True when an (item, amount) stop condition is met. None never stops.
+def Reached(until):
+	if until == None:
+		return False
+	return num_items(until[0]) >= until[1]
 
 # Walk from (x, y) to (toX, toY) on an n-wide farm, using edge wrap-around
 # when that is shorter. Positions are tracked by the caller, so no sensing.

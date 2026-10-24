@@ -26,11 +26,9 @@ def prep_column(n, x, a, b, water, fertilize, poly):
 		WaterIfWanted(water)
 		if can_harvest():
 			harvest()
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
 		elif get_entity_type() == None:
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
 		move(North)
 		a, b = b, a
 
@@ -60,11 +58,14 @@ def sameNeighbour(n, x, y, crop, poly):
 # Plant the tile under the drone. With poly, honour a companion request for
 # this tile unless it would sit next to an identical crop or cannot be
 # afforded, record what we planted, and record the new plant's own request
-# if it falls on our strip.
+# if it falls on our strip. Returns True when the new plant's request is
+# believed met already (or when there is no poly knowledge at all), which
+# is when a fertilizer is worth spending: half of the multiplied yield
+# becomes Weird Substance.
 def plantTile(n, x, y, crop, poly):
 	if poly == None:
 		plant(crop)
-		return
+		return True
 	tile = (x, y)
 	wanted = poly["wanted"]
 	if tile in wanted:
@@ -74,23 +75,25 @@ def plantTile(n, x, y, crop, poly):
 	TillIfNeeded(crop)
 	plant(crop)
 	poly["planted"][tile] = crop
+	met = False
 	ask = get_companion()
 	if ask != None:
 		pos = ask[1]
+		if believed(poly, pos) == ask[0]:
+			met = True
 		if pos[0] >= poly["x0"]:
 			if pos[0] < poly["x1"]:
 				wanted[pos] = ask[0]
+	return met
 
 # The hot loop: one check per tile when nothing is ready.
 def farm_column(n, x, a, b, water, fertilize, poly):
 	for y in range(n):
 		if can_harvest():
 			harvest()
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
 		elif get_entity_type() == None:
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			FertilizeIfWanted(fertilize and plantTile(n, x, y, a, poly))
 		WaterIfWanted(water)
 		move(North)
 		a, b = b, a
@@ -123,9 +126,8 @@ def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until
 				move(East)
 		for _ in range(w - 1):
 			move(West)
-		if until != None:
-			if num_items(until[0]) >= until[1]:
-				return
+		if Reached(until):
+			return
 
 # Entry point for every drone. Extra spawn_drone() arguments arrive here.
 def worker(primaryCrop, secondaryCrop, water = False, fertilize = False, companions = False, until = None):
