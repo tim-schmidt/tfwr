@@ -70,7 +70,15 @@ def go_to(parent, depth, pdir, back, goal):
 	for d in route:
 		move(d)
 
+# The maze needs a bush under the drone and a free farm around it. After a
+# crop phase the tile holds something else and plant() would fail, so the
+# farm is cleared first and the regrown grass harvested off the tile.
 def createMaze(substanceAmount):
+	clear()
+	while get_entity_type() != None and not can_harvest():
+		pass
+	if can_harvest():
+		harvest()
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
@@ -95,8 +103,10 @@ def mapMaze():
 	return m
 
 # One maze under the drone: build it, explore it, relocate the treasure
-# `reuses` times, harvest. Returns the explored graph.
-def goldMaze(size, reuses):
+# `reuses` times, harvest. Stops relocating early when `until` is reached
+# or the substance for another relocation is not in stock. Returns the
+# explored graph.
+def goldMaze(size, reuses, until = None):
 	substanceAmount = substanceFor(size)
 	createMaze(substanceAmount)
 	m = mapMaze()
@@ -107,6 +117,8 @@ def goldMaze(size, reuses):
 	back = m["back"]
 
 	for i in range(reuses):
+		if Reached(until) or num_items(Items.Weird_Substance) < substanceAmount:
+			break
 		goal = measure()
 		if goal == None:
 			quick_print("goldMaze: maze gone after", i, "relocations at", here())
@@ -121,11 +133,17 @@ def goldMaze(size, reuses):
 	harvest()
 	return graph
 
-# Single drone. `size` is the maze size; 0 means the whole farm.
-def CultivateGold(size = 0, reuses = 300):
+# Single drone. `size` is the maze size; 0 means the whole farm. With
+# `until` (item, amount) it keeps building mazes until that stock is
+# reached or the substance for a new maze runs out; without, one maze.
+def CultivateGold(size = 0, reuses = 300, until = None):
 	if size == 0:
 		size = get_world_size()
-	goldMaze(size, reuses)
+	goldMaze(size, reuses, until)
+	while until != None and not Reached(until):
+		if num_items(Items.Weird_Substance) < substanceFor(size):
+			return
+		goldMaze(size, reuses, until)
 
 # Bounding box of the explored cells: (minX, minY, maxX, maxY).
 def mazeBounds(graph):
@@ -209,7 +227,7 @@ def ownerMap(n, m, homes):
 # own, walk there and relocate it, or harvest it on the last relocation.
 # Everyone sees the maze vanish through measure() and returns. Relocations
 # so far are read from the shared substance count, so no messages needed.
-def serveMaze(mine, home, m, owner, amount, start, reuses):
+def serveMaze(mine, home, m, owner, amount, start, reuses, until):
 	parent = m["parent"]
 	depth = m["depth"]
 	pdir = m["pdir"]
@@ -221,27 +239,31 @@ def serveMaze(mine, home, m, owner, amount, start, reuses):
 			return
 		if owner[target] in mine:
 			go_to(parent, depth, pdir, back, target)
-			if (start - num_items(Items.Weird_Substance)) // amount >= reuses:
+			if (start - num_items(Items.Weird_Substance)) // amount >= reuses or Reached(until) or num_items(Items.Weird_Substance) < amount:
 				harvest()
 				return
 			use_item(Items.Weird_Substance, amount)
 
 # Worker entry point.
-def mazeWorker(me, home, m, owner, amount, start, reuses):
-	serveMaze({me: True}, home, m, owner, amount, start, reuses)
+def mazeWorker(me, home, m, owner, amount, start, reuses, until):
+	serveMaze({me: True}, home, m, owner, amount, start, reuses, until)
 
 # Many drones share one maze. Main builds and maps the maze, picks a home
 # per drone spread along the exploration order, hands every worker the
 # map and owner table through spawn_drone, and serves as drone 0 itself.
-# Ids whose spawn fails are served by main. `rounds` of 0 runs forever.
-def CultivateGoldWithDrones(size = 0, reuses = 300, rounds = 0):
+# Ids whose spawn fails are served by main. `rounds` of 0 runs forever;
+# `until` (item, amount) stops when that stock is reached. Stops when the
+# substance for a new maze is not in stock.
+def CultivateGoldWithDrones(size = 0, reuses = 300, rounds = 0, until = None):
 	n = get_world_size()
 	if size == 0:
 		size = n
 	amount = substanceFor(size)
 
 	done = 0
-	while rounds == 0 or done < rounds:
+	while (rounds == 0 or done < rounds) and not Reached(until):
+		if num_items(Items.Weird_Substance) < amount:
+			return
 		createMaze(amount)
 		start = num_items(Items.Weird_Substance)
 		m = mapMaze()
@@ -258,12 +280,12 @@ def CultivateGoldWithDrones(size = 0, reuses = 300, rounds = 0):
 		workers = []
 		mine = {0: True}
 		for i in range(1, count):
-			drone = spawn_drone(mazeWorker, i, homes[i], m, owner, amount, start, reuses)
+			drone = spawn_drone(mazeWorker, i, homes[i], m, owner, amount, start, reuses, until)
 			if drone == None:
 				mine[i] = True
 			else:
 				workers.append(drone)
-		serveMaze(mine, homes[0], m, owner, amount, start, reuses)
+		serveMaze(mine, homes[0], m, owner, amount, start, reuses, until)
 		for drone in workers:
 			wait_for(drone)
 		done += 1

@@ -92,10 +92,11 @@ def goHome():
 		move(North)
 
 # Single drone: columns, then rows, then one harvest for the whole field.
-def CultivateCacti(water = False, fertilize = False):
+# `until` is None or (item, amount) to stop at, checked per harvest.
+def CultivateCacti(water = False, fertilize = False, until = None):
 	RefreshSoilCrops()
 	n = get_world_size()
-	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin]:
+	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin] and not Reached(until):
 		goHome()
 		cactusColumns(n, n, water, fertilize)
 		goHome()
@@ -134,14 +135,14 @@ def runPhase(worker, step, n, w, water, fertilize):
 	for drone in workers:
 		wait_for(drone)
 
-def CultivateCactiWithDrones(water = False, fertilize = False):
+def CultivateCactiWithDrones(water = False, fertilize = False, until = None):
 	n, w, d = layout()
 	while get_pos_x() != 0:
 		move(West)
 	while get_pos_y() != 0:
 		move(South)
 
-	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin]:
+	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin] and not Reached(until):
 		runPhase(cactusColumnStrip, East, n, w, water, fertilize)
 		# The column phase ends at the top or bottom of the field depending
 		# on strip width; one wrap-around step puts the main drone on row 0.

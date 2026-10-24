@@ -32,12 +32,13 @@ def CactiForFullGrid(n):
 	return n * n * get_cost(Entities.Apple)[Items.Cactus]
 
 # Each harvest: hat on, lap until the tail blocks a move, cash out.
-# Repeats while there are enough cacti to fill the grid with apples.
-def CultivateBones():
+# Repeats while there are enough cacti to fill the grid with apples and
+# `until` (None or (item, amount)) is not reached.
+def CultivateBones(until = None):
 	n = get_world_size()
 	clear()
 
-	while num_items(Items.Cactus) > CactiForFullGrid(n):
+	while num_items(Items.Cactus) > CactiForFullGrid(n) and not Reached(until):
 		change_hat(Hats.Dinosaur_Hat)
 		while BonesLap(n):
 			pass

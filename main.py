@@ -10,21 +10,22 @@
 #CultivateCropsWithDrones(primaryCrop, secondaryCrop, water, fertilize, companions, until)
 
 #from Pumpkins import CultivatePumpkins, CultivatePumpkinsWithDrones
-#CultivatePumpkins(water, fertilize)
-#CultivatePumpkinsWithDrones(water, fertilize)
+#CultivatePumpkins(water, fertilize, until)
+#CultivatePumpkinsWithDrones(water, fertilize, until)
 
 #clear()
 #from Cacti import CultivateCacti, CultivateCactiWithDrones
-#CultivateCacti(water, fertilize)
-#CultivateCactiWithDrones(water, fertilize)
+#CultivateCacti(water, fertilize, until)
+#CultivateCactiWithDrones(water, fertilize, until)
 
 #from Bones import CultivateBones
-#CultivateBones()
+#CultivateBones(until)
 
 #from Gold import CultivateGold, CultivateGoldWithDrones, CultivateGoldInSectors
 #mazeSize = 0          # 0 = whole farm; gold per substance equals the maze size
-#CultivateGold(mazeSize)
-#CultivateGoldWithDrones(mazeSize)
+#CultivateGold(mazeSize, 300, until)
+#CultivateGoldWithDrones(mazeSize, 300, 0, until)
 #CultivateGoldInSectors(8)
 
+# The leaderboard run: FastestReset.py walks the unlock route from zero.
 #leaderboard_run(Leaderboards.Fastest_Reset, "FastestReset", 256)

@@ -42,18 +42,36 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 
 # True when every item in the crop's planting cost is in stock.
 def CanAfford(crop):
+	return ShortItem(crop) == None
+
+# The first item of the crop's planting cost that is out of stock, or None.
+def ShortItem(crop):
 	cost = get_cost(crop)
 	for item in cost:
 		if num_items(item) < cost[item]:
-			return False
-	return True
+			return item
+	return None
+
+# A free crop that produces `item`: grass for hay, tree or bush for wood,
+# grass for anything else. Items are only named behind their unlock.
+def ProducerOf(item):
+	if item == Items.Hay:
+		return Entities.Grass
+	if num_unlocked(Unlocks.Plant) > 0 and item == Items.Wood:
+		if num_unlocked(Unlocks.Trees) > 0:
+			return Entities.Tree
+		return Entities.Bush
+	return Entities.Grass
 
 def FertilizeIfWanted(wanted = False):
-	if not wanted:
-		return
-
-	if num_items(Items.Fertilizer) > 0:
+	if wanted and num_items(Items.Fertilizer) > 0:
 		use_item(Items.Fertilizer)
+
+# True when an (item, amount) stop condition is met. None never stops.
+def Reached(until):
+	if until == None:
+		return False
+	return num_items(until[0]) >= until[1]
 
 # Walk from (x, y) to (toX, toY) on an n-wide farm, using edge wrap-around
 # when that is shorter. Positions are tracked by the caller, so no sensing.

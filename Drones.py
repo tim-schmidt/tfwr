@@ -26,11 +26,11 @@ def prep_column(n, x, a, b, water, fertilize, poly):
 		WaterIfWanted(water)
 		if can_harvest():
 			harvest()
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			met = plantTile(n, x, y, a, b, poly)
+			FertilizeIfWanted(fertilize and met)
 		elif get_entity_type() == None:
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			met = plantTile(n, x, y, a, b, poly)
+			FertilizeIfWanted(fertilize and met)
 		move(North)
 		a, b = b, a
 
@@ -57,14 +57,25 @@ def sameNeighbour(n, x, y, crop, poly):
 			return True
 	return False
 
-# Plant the tile under the drone. With poly, honour a companion request for
-# this tile unless it would sit next to an identical crop or cannot be
-# afforded, record what we planted, and record the new plant's own request
-# if it falls on our strip.
-def plantTile(n, x, y, crop, poly):
+# Plant the tile under the drone. When `crop` cannot be afforded, plant a
+# free crop that produces the missing item instead, so the board keeps
+# paying for the crop that costs something and no plant() call fails.
+# `other` is the checkerboard partner, kept for the caller's symmetry.
+# With poly, honour a companion request for this tile
+# unless it would sit next to an identical crop or cannot be afforded,
+# record what we planted, and record the new plant's own request if it
+# falls on our strip. Returns True when the new plant's request is
+# believed met already (or when there is no poly knowledge at all), which
+# is when a fertilizer is worth spending: half of the multiplied yield
+# becomes Weird Substance.
+def plantTile(n, x, y, crop, other, poly):
+	short = ShortItem(crop)
+	if short != None:
+		crop = ProducerOf(short)
 	if poly == None:
+		TillIfNeeded(crop)
 		plant(crop)
-		return
+		return True
 	tile = (x, y)
 	wanted = poly["wanted"]
 	if tile in wanted:
@@ -74,26 +85,46 @@ def plantTile(n, x, y, crop, poly):
 	TillIfNeeded(crop)
 	plant(crop)
 	poly["planted"][tile] = crop
+	met = False
 	ask = get_companion()
 	if ask != None:
 		pos = ask[1]
+		if believed(poly, pos) == ask[0]:
+			met = True
 		if pos[0] >= poly["x0"]:
 			if pos[0] < poly["x1"]:
 				wanted[pos] = ask[0]
+	return met
 
 # The hot loop: one check per tile when nothing is ready.
 def farm_column(n, x, a, b, water, fertilize, poly):
 	for y in range(n):
 		if can_harvest():
 			harvest()
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			met = plantTile(n, x, y, a, b, poly)
+			FertilizeIfWanted(fertilize and met)
 		elif get_entity_type() == None:
-			plantTile(n, x, y, a, poly)
-			FertilizeIfWanted(fertilize)
+			met = plantTile(n, x, y, a, b, poly)
+			FertilizeIfWanted(fertilize and met)
 		WaterIfWanted(water)
 		move(North)
 		a, b = b, a
+
+# Before the Plant unlock plant() is an error, so the strip is only
+# grazed: harvest whatever regrows, pass after pass, until `until`.
+def graze(n, w, until):
+	while True:
+		for i in range(w):
+			for _ in range(n):
+				if can_harvest():
+					harvest()
+				move(North)
+			if i < w - 1:
+				move(East)
+		for _ in range(w - 1):
+			move(West)
+		if Reached(until):
+			return
 
 # Farm the strip of w columns starting under the drone, forever or until
 # num_items(until[0]) reaches until[1], checked once per pass. Ends back at
@@ -101,6 +132,9 @@ def farm_column(n, x, a, b, water, fertilize, poly):
 def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until):
 	RefreshSoilCrops()
 	n = get_world_size()
+	if num_unlocked(Unlocks.Plant) == 0:
+		graze(n, w, until)
+		return
 	x0 = get_pos_x()
 	y0 = get_pos_y()
 	poly = None
@@ -123,9 +157,8 @@ def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until
 				move(East)
 		for _ in range(w - 1):
 			move(West)
-		if until != None:
-			if num_items(until[0]) >= until[1]:
-				return
+		if Reached(until):
+			return
 
 # Entry point for every drone. Extra spawn_drone() arguments arrive here.
 def worker(primaryCrop, secondaryCrop, water = False, fertilize = False, companions = False, until = None):
