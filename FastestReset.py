@@ -53,12 +53,33 @@ def woodCrop():
 	return Entities.Grass
 
 # Farm whatever the crop costs to plant, enough for `tiles` plantings.
+# Recursive through farm(): pumpkins need carrots, carrots need hay and
+# wood, and each level of the chain farms its own planting cost first.
 def ensurePlantable(crop, tiles):
 	cost = get_cost(crop)
 	for item in cost:
 		need = cost[item] * tiles
 		if num_items(item) < need:
 			farm(item, need)
+
+# Units one planting of the crop that yields `item` gives: 1 at level 1,
+# doubling per level. Giant pumpkins give more, so pumpkins overestimate.
+def yieldOf(item):
+	if have(Unlocks.Carrots) and item == Items.Carrot:
+		return 2 ** (num_unlocked(Unlocks.Carrots) - 1)
+	if have(Unlocks.Pumpkins) and item == Items.Pumpkin:
+		return 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+	if have(Unlocks.Cactus) and item == Items.Cactus:
+		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
+	return 1
+
+# Plantings still needed to bring `item` up to `amount`.
+def plantingsFor(item, amount):
+	missing = amount - num_items(item)
+	if missing <= 0:
+		return 0
+	y = yieldOf(item)
+	return (missing + y - 1) // y
 
 def farmCrops(primary, secondary, fertilize, until):
 	n = get_world_size()
@@ -102,19 +123,20 @@ def farm(item, amount):
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
 		farmCrops(woodCrop(), Entities.Grass, True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
-		# Pumpkins cost carrots per planting; stock a few boards' worth,
-		# grow until it runs out or the target is met, restock, repeat.
+		# Pumpkins cost carrots per planting: stock the predicted total up
+		# front, grow until it runs out or the target is met, restock.
 		while not Reached(until):
-			ensurePlantable(Entities.Pumpkin, 4 * n * n)
+			ensurePlantable(Entities.Pumpkin, plantingsFor(item, amount))
 			if dronesOn():
 				CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
 			else:
 				CultivatePumpkins(have(Unlocks.Watering), False, until)
 	elif have(Unlocks.Cactus) and item == Items.Cactus:
-		# Cacti cost pumpkins per planting; same restock loop. The cactus
-		# code itself stops when a full board can no longer be planted.
+		# Cacti cost pumpkins per planting; same stock-then-grow loop, plus
+		# one board, since the cactus code stops when a full board can no
+		# longer be planted.
 		while not Reached(until):
-			ensurePlantable(Entities.Cactus, 4 * n * n + 1)
+			ensurePlantable(Entities.Cactus, plantingsFor(item, amount) + n * n + 1)
 			if dronesOn():
 				CultivateCactiWithDrones(have(Unlocks.Watering), False, until)
 			else:
