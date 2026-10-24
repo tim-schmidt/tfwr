@@ -284,5 +284,8 @@ def run():
 			elif not farm(short, cost[short]):
 				return
 	quick_print("FastestReset: done, Leaderboard level", num_unlocked(Unlocks.Leaderboard))
+	# Leftover stock: anything large here was farmed past its need.
+	for item in [Items.Hay, Items.Wood, Items.Carrot, Items.Pumpkin, Items.Cactus, Items.Gold, Items.Bone, Items.Power, Items.Weird_Substance, Items.Water, Items.Fertilizer]:
+		quick_print("left", item, num_items(item))
 
 run()
