@@ -38,8 +38,11 @@ SOUTH = (South, 0, -1)
 # step (direction, dx, dy) from lap position i to i + 1.
 def lapIndex(n):
 	N = n * n
-	index = [0] * N
-	ahead = [NORTH] * N
+	index = []
+	ahead = []
+	for _ in range(N):
+		index.append(0)
+		ahead.append(NORTH)
 	x = 0
 	y = 1
 	i = 1
