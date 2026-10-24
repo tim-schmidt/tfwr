@@ -208,7 +208,10 @@ def farm(item, amount):
 	elif have(Unlocks.Plant) and item == Items.Wood:
 		farmCrops(woodCrop(), woodPartner(), False, until)
 	elif have(Unlocks.Carrots) and item == Items.Carrot:
-		farmCrops(Entities.Carrot, Entities.Carrot, False, until)
+		# Carrots cost wood to plant, so the partner is the wood crop. A
+		# solid carrot board stalls: the wood fallback puts trees next to
+		# each other, where they take 17x longer to grow.
+		farmCrops(Entities.Carrot, woodCrop(), False, until)
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
 		farmCrops(woodCrop(), woodPartner(), True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
