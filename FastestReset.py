@@ -111,12 +111,17 @@ def ensurePlantable(crop, tiles):
 			farm(item, need)
 
 # Units one planting of the crop that yields `item` gives: 1 at level 1,
-# doubling per level. Giant pumpkins give more, so pumpkins overestimate.
+# doubling per level. A full board of pumpkins merges into a giant one
+# worth n per tile up to 5x5 and 6 per tile from 6x6 on, and a fifth of
+# the plantings die and get replanted, hence the 4/5.
 def yieldOf(item):
 	if have(Unlocks.Carrots) and item == Items.Carrot:
 		return 2 ** (num_unlocked(Unlocks.Carrots) - 1)
 	if have(Unlocks.Pumpkins) and item == Items.Pumpkin:
-		return 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+		n = get_world_size()
+		if n > 6:
+			n = 6
+		return max(1, n * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1) * 4 // 5)
 	if have(Unlocks.Cactus) and item == Items.Cactus:
 		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	return 1
