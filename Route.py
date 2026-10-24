@@ -233,7 +233,7 @@ def farmGold(amount):
 # ticks per running drone (with the doubling, 800 ticks per second per
 # Speed level). Before a farm phase, when the stock is under `floor`
 # seconds of use by the drones that phase will run, fill it to `target`
-# seconds of them. Bones runs one drone (the hat) for about 850 s with no
+# seconds of them. Bones runs one drone (the hat) for about 560 s with no
 # top-up inside, so it needs the whole phase in stock up front (the phase
 # takes about 560 s; 650 s floor, 750 s target); everything else runs all
 # drones and gets a minute's floor and 100 s target. Measured in one call:
