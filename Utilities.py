@@ -31,13 +31,13 @@ def TillIfNeeded(crop):
 	if NeedsSoil(crop) and get_ground_type() != Grounds.Soil:
 		till()
 
-# Water the tile when its water level is under `threshold` and a tank is
-# in stock. Growth speed is 1x at water 0 and 5x at water 1, and each
+# Water the tile when its water level is under `threshold` and the stock
+# holds a tank for every drone, since all drones may reach for one at the
+# same moment. Growth speed is 1x at water 0 and 5x at water 1, and each
 # watering adds 0.25, so a threshold of 0.75 keeps the level in the 0.75
-# to 1.0 band without overshooting the cap. The stock check costs one tick
-# and spares the failed-use warning when income has not caught up.
+# to 1.0 band without overshooting the cap.
 def WaterIfWanted(wanted = False, threshold = 0.75):
-	if wanted and get_water() < threshold and num_items(Items.Water) > 0:
+	if wanted and get_water() < threshold and num_items(Items.Water) >= max_drones():
 		use_item(Items.Water)
 
 # True when every item in the crop's planting cost is in stock.
