@@ -131,7 +131,7 @@ def run():
 		level = step[1]
 		while num_unlocked(target) < level:
 			cost = get_cost(target)
-			quick_print("route", target, "level", num_unlocked(target), "->", level, "cost", cost)
+			quick_print("t", get_time() // 1, "route", target, "level", num_unlocked(target), "->", level, "cost", cost)
 			short = None
 			for item in cost:
 				if num_items(item) < cost[item]:
