@@ -104,13 +104,10 @@ def woodCrop():
 		return Entities.Bush
 	return Entities.Grass
 
-# Partner for the wood crop. Only trees suffer the identical-neighbour
-# growth penalty (measured: 17x with four tree neighbours, none for grass,
-# bush or carrots), so trees get a grass checkerboard and bushes go solid.
-def woodPartner():
-	if have(Unlocks.Trees):
-		return Entities.Grass
-	return woodCrop()
+# Only trees suffer the identical-neighbour growth penalty (measured: 17x
+# with four tree neighbours, none for grass, bush or carrots). Solid grass
+# and bush boards were tried anyway and lost 122 s in the early game: the
+# hay phases' wood partner stocks the wood that carrots cost to plant.
 
 # Farm whatever the crop costs to plant, enough for `tiles` plantings.
 # Recursive through farm(): pumpkins need carrots, carrots need hay and
@@ -207,16 +204,16 @@ def farm(item, amount):
 	if not (have(Unlocks.Sunflowers) and item == Items.Power):
 		topUpPower()
 	if item == Items.Hay:
-		farmCrops(Entities.Grass, Entities.Grass, False, until)
+		farmCrops(Entities.Grass, woodCrop(), False, until)
 	elif have(Unlocks.Plant) and item == Items.Wood:
-		farmCrops(woodCrop(), woodPartner(), False, until)
+		farmCrops(woodCrop(), Entities.Grass, False, until)
 	elif have(Unlocks.Carrots) and item == Items.Carrot:
 		# Carrots cost wood to plant, so the partner is the wood crop. A
 		# solid carrot board stalls: the wood fallback puts trees next to
 		# each other, where they take 17x longer to grow.
 		farmCrops(Entities.Carrot, woodCrop(), False, until)
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
-		farmCrops(woodCrop(), woodPartner(), True, until)
+		farmCrops(woodCrop(), Entities.Grass, True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
 		# Pumpkins cost carrots per planting: stock the predicted total up
 		# front, at least two boards' worth since a fifth die and get
