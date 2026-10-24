@@ -22,7 +22,8 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 # drones speed up every later phase); Megafarm 3 right after Mazes 2, where
 # a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
 # Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
-# Megafarm 4 and 5 stay after Mazes 4, where gold is cheapest.
+# Megafarm 4 follows Megafarm 3 (A/B tested, 3.8 s better than after
+# Mazes 4); Megafarm 5 stays after Mazes 4, where gold is cheapest.
 # A third tuple element True marks an optional step: bought only when the
 # cost is already in stock, never farmed for. (Watering 8 and 9 were tried
 # this way; the byproduct wood only piles up during the final sweeps, so
@@ -80,6 +81,7 @@ BASE_ROUTE = [
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
 	(Unlocks.Megafarm, 3),
+	(Unlocks.Megafarm, 4),
 	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
@@ -90,7 +92,6 @@ BASE_ROUTE = [
 	(Unlocks.Mazes, 4),
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
-	(Unlocks.Megafarm, 4),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
@@ -98,9 +99,10 @@ BASE_ROUTE = [
 # Route variants for in-session A/B tests (SimReset runs two back to back;
 # the game drifts between sessions, so only same-call comparisons count).
 #   0  the route above
-#   1  Megafarm 4 right after Megafarm 3 (Mazes 2) instead of after Mazes 4
-#   2  Grass 2 and 3 right after Expand 4 instead of their places
-#   3  Expand 4 before Trees 2 and Grass 3
+#   1  Grass 2 and 3 right after Expand 4 instead of their places
+#   2  Expand 4 before Trees 2 and Grass 3
+# Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
+# 3.8 s (3,301.9 against 3,305.7) and is now in the base route.
 def moveStep(route, step, before):
 	out = []
 	for s in route:
@@ -115,11 +117,9 @@ def buildRoute(variant):
 	for s in BASE_ROUTE:
 		route.append(s)
 	if variant == 1:
-		route = moveStep(route, (Unlocks.Megafarm, 4), (Unlocks.Dinosaurs, 2))
-	elif variant == 2:
 		route = moveStep(route, (Unlocks.Grass, 2), (Unlocks.Watering, 1))
 		route = moveStep(route, (Unlocks.Grass, 3), (Unlocks.Watering, 1))
-	elif variant == 3:
+	elif variant == 2:
 		route = moveStep(route, (Unlocks.Expand, 4), (Unlocks.Trees, 2))
 	return route
 
