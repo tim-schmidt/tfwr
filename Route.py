@@ -100,6 +100,12 @@ BASE_ROUTE = [
 # the game drifts between sessions, so only same-call comparisons count).
 #   0  the route above
 #   1  bones by plain Hamiltonian laps, no fourth-snake trim (the old way)
+#   2  power top-ups to 150 s (lost to 100 s by 73 s)
+#   3  power floor 60 s, top-ups to 100 s; bones stock 650/750 s (the base)
+#   4  power floor 40 s, top-ups to 70 s (lost to 100 s by 112 s)
+#   5  power floor 25 s, top-ups to 45 s (lost to 100 s by 97 s)
+#   The old 300 s target with bones stock 900/1000 s lost to 100 s by 151 s
+#   (3,147.2 against 2,996.4).
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -116,9 +122,17 @@ def moveStep(route, step, before):
 	return out
 
 BONES_SHORTCUTS = [True]
+# (floor, target) seconds of power for the phases that run every drone, and
+# for the single-drone bones phase (see topUpPower).
+POWER_STOCK = [60, 100]
+BONES_POWER_STOCK = [650, 750]
 
 def buildRoute(variant):
 	BONES_SHORTCUTS[0] = variant != 1
+	stocks = {2: (60, 150), 4: (40, 70), 5: (25, 45)}
+	if variant in stocks:
+		POWER_STOCK[0] = stocks[variant][0]
+		POWER_STOCK[1] = stocks[variant][1]
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
@@ -220,8 +234,11 @@ def farmGold(amount):
 # Speed level). Before a farm phase, when the stock is under `floor`
 # seconds of use by the drones that phase will run, fill it to `target`
 # seconds of them. Bones runs one drone (the hat) for about 850 s with no
-# top-up inside, so it needs the whole phase in stock up front; everything
-# else runs all drones and gets a minute's floor and five minutes' target.
+# top-up inside, so it needs the whole phase in stock up front (the phase
+# takes about 560 s; 650 s floor, 750 s target); everything else runs all
+# drones and gets a minute's floor and 100 s target. Measured in one call:
+# 300 s target 3,147 s, 150 s 3,069, 100 s 2,996; 70 s and 45 s targets
+# lost to 100 s by 112 and 97 s.
 # POWERING guards the recursion through the sunflowers' own carrot cost.
 POWERING = [False]
 
@@ -244,9 +261,9 @@ def farm(item, amount):
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
-		topUpPower(1, 900, 1000)
+		topUpPower(1, BONES_POWER_STOCK[0], BONES_POWER_STOCK[1])
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower(max_drones(), 60, 300)
+		topUpPower(max_drones(), POWER_STOCK[0], POWER_STOCK[1])
 	if item == Items.Hay:
 		if num_unlocked(Unlocks.Speed) < 3:
 			# Bare grassland regrows ripe grass at once, and below Speed 3 a
