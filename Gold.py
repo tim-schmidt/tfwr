@@ -75,9 +75,10 @@ def go_to(parent, depth, pdir, back, goal):
 # farm is cleared first and the regrown grass harvested off the tile.
 def createMaze(substanceAmount):
 	clear()
-	while get_entity_type() != None:
-		if can_harvest():
-			harvest()
+	while get_entity_type() != None and not can_harvest():
+		pass
+	if can_harvest():
+		harvest()
 	plant(Entities.Bush)
 	use_item(Items.Weird_Substance, substanceAmount)
 
