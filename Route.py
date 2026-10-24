@@ -100,6 +100,8 @@ BASE_ROUTE = [
 # the game drifts between sessions, so only same-call comparisons count).
 #   0  the route above
 #   1  bones by plain Hamiltonian laps, no fourth-snake trim (the old way)
+#   2  power top-ups to 150 s instead of 300 s; bones stock 650/750 s
+#   3  power top-ups to 100 s; bones stock 650/750 s
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -116,9 +118,19 @@ def moveStep(route, step, before):
 	return out
 
 BONES_SHORTCUTS = [True]
+# (floor, target) seconds of power for the phases that run every drone, and
+# for the single-drone bones phase (see topUpPower).
+POWER_STOCK = [60, 300]
+BONES_POWER_STOCK = [900, 1000]
 
 def buildRoute(variant):
 	BONES_SHORTCUTS[0] = variant != 1
+	if variant == 2 or variant == 3:
+		BONES_POWER_STOCK[0] = 650
+		BONES_POWER_STOCK[1] = 750
+		POWER_STOCK[1] = 150
+		if variant == 3:
+			POWER_STOCK[1] = 100
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
@@ -244,9 +256,9 @@ def farm(item, amount):
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
-		topUpPower(1, 900, 1000)
+		topUpPower(1, BONES_POWER_STOCK[0], BONES_POWER_STOCK[1])
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower(max_drones(), 60, 300)
+		topUpPower(max_drones(), POWER_STOCK[0], POWER_STOCK[1])
 	if item == Items.Hay:
 		if num_unlocked(Unlocks.Speed) < 3:
 			# Bare grassland regrows ripe grass at once, and below Speed 3 a
