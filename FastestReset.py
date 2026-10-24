@@ -11,7 +11,6 @@ from Pumpkins import CultivatePumpkins, CultivatePumpkinsWithDrones
 from Cacti import CultivateCacti, CultivateCactiWithDrones
 from Bones import CultivateBones, CactiForFullGrid
 from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
-from Power import CultivatePower, CultivatePowerWithDrones
 
 # The order of Unlocks.md with the programming unlocks (already owned in
 # a leaderboard run) removed and levels above these caps skipped, since
@@ -126,7 +125,9 @@ def yieldOf(item):
 	if have(Unlocks.Cactus) and item == Items.Cactus:
 		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	if have(Unlocks.Sunflowers) and item == Items.Power:
-		return 8
+		# 1 power, or 8 for the flower with the most petals on the farm;
+		# growing flowers count, so about one harvest in nine pays 8.
+		return 2
 	return 1
 
 # Plantings still needed to bring `item` up to `amount`.
@@ -226,16 +227,11 @@ def farm(item, amount):
 	elif have(Unlocks.Mazes) and item == Items.Gold:
 		farmGold(amount)
 	elif have(Unlocks.Sunflowers) and item == Items.Power:
-		# Sunflowers cost carrots per planting; stock, cycle, restock.
-		while not Reached(until):
-			ensurePlantable(Entities.Sunflower, plantingsFor(item, amount))
-			start = get_time()
-			power = num_items(Items.Power)
-			if dronesOn():
-				harvests = CultivatePowerWithDrones(until)
-			else:
-				harvests = CultivatePower(until)
-			quick_print("power phase: harvests", harvests, "power", num_items(Items.Power) - power, "seconds", (get_time() - start) // 1)
+		# A plain checkerboard sweep: a full sunflower board grows at a
+		# crawl (each identical neighbour halves growth), and carrots as
+		# the partner pay the sunflowers' one-carrot planting cost.
+		ensurePlantable(Entities.Sunflower, plantingsFor(item, amount))
+		farmCrops(Entities.Sunflower, Entities.Carrot, False, until)
 	else:
 		quick_print("FastestReset: no producer for", item, "- route order is wrong")
 		return False
