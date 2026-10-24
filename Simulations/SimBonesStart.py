@@ -18,8 +18,8 @@ if MODE == 0:
 	while BonesLap(get_world_size()):
 		pass
 elif MODE == 1:
-	tail = ShortcutSnake(get_world_size())
+	tail = ShortcutSnake(get_world_size(), 0, 0, True)
 else:
-	tail = ShortcutSnake(get_world_size(), 0, LAPFROM)
+	tail = ShortcutSnake(get_world_size(), 0, LAPFROM, True)
 CashOutBones()
 quick_print("bones probe mode", MODE, "world", WORLD, "tail", tail, "bones", num_items(Items.Bone) - bones, "cactus spent", cactus - num_items(Items.Cactus))

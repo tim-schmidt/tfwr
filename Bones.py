@@ -79,9 +79,11 @@ def lapIndex(n):
 # segments on, the snake just follows the lap: choosing a shortcut costs
 # ticks and a long body leaves little room for one. Returns the tail
 # length reached.
-def ShortcutSnake(n, tail = 0, lapFrom = 0):
+def ShortcutSnake(n, tail = 0, lapFrom = 0, debug = False):
 	N = n * n
-	index, ahead = lapIndex(n)
+	tables = lapIndex(n)
+	index = tables[0]
+	ahead = tables[1]
 	steps = [EAST, WEST, NORTH, SOUTH]
 	x = get_pos_x()
 	y = get_pos_y()
@@ -91,11 +93,13 @@ def ShortcutSnake(n, tail = 0, lapFrom = 0):
 	while tail == 0 or k < tail:
 		apple = measure()
 		if apple == None:
+			quick_print("snake stop: no apple at", x, y, "tail", k)
 			return k
 		a = index[apple[0] * n + apple[1]]
 		if lapFrom > 0 and k >= lapFrom:
 			step = ahead[h]
 			if not move(step[0]):
+				quick_print("snake stop: lap move blocked at", x, y, "tail", k)
 				return k
 			x += step[1]
 			y += step[2]
@@ -121,7 +125,13 @@ def ShortcutSnake(n, tail = 0, lapFrom = 0):
 				if d > bestD and d <= limit:
 					bestD = d
 					best = step
-		if best == None or not move(best[0]):
+		if debug and len(visited) < 6:
+			quick_print("snake at", x, y, "h", h, "apple", apple, "a", a, "limit", limit, "tip", tip, "best", best, "d", bestD)
+		if best == None:
+			quick_print("snake stop: no step at", x, y, "tail", k, "limit", limit)
+			return k
+		if not move(best[0]):
+			quick_print("snake stop: move", best[0], "blocked at", x, y, "tail", k)
 			return k
 		x += best[1]
 		y += best[2]

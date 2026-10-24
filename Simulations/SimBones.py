@@ -10,7 +10,7 @@ speedup = 256
 
 SIM_GLOBALS["WORLD"] = 16
 SIM_GLOBALS["LAPFROM"] = 128
-for mode in [0, 1, 2]:
+for mode in [1, 2]:
 	SIM_GLOBALS["MODE"] = mode
 	for seed in seeds:
 		t = simulate("SimBonesStart", Unlocks, items, SIM_GLOBALS, seed, speedup)
