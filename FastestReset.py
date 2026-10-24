@@ -18,6 +18,9 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 #   Grass 6, Trees 6, Carrots 6, Pumpkins 5, Cactus 3, Watering 7,
 #   Fertilizer 3, Mazes 4, Dinosaurs 4, Expand 7 (16x16), Polyculture 1.
 # Bones at Dinosaurs 4 take four full 16x16 snakes (520k each).
+# Megafarm 1 to 3 moved up to right after Mazes 1 (gold is cheap there and
+# the drones speed up every later phase), Megafarm 4 to right after
+# Mazes 2.
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -51,6 +54,9 @@ ROUTE = [
 	(Unlocks.Watering, 4),
 	(Unlocks.Fertilizer, 3),
 	(Unlocks.Mazes, 1),
+	(Unlocks.Megafarm, 1),
+	(Unlocks.Megafarm, 2),
+	(Unlocks.Megafarm, 3),
 	(Unlocks.Trees, 5),
 	(Unlocks.Grass, 6),
 	(Unlocks.Watering, 5),
@@ -68,10 +74,8 @@ ROUTE = [
 	(Unlocks.Cactus, 2),
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
+	(Unlocks.Megafarm, 4),
 	(Unlocks.Dinosaurs, 2),
-	(Unlocks.Megafarm, 1),
-	(Unlocks.Megafarm, 2),
-	(Unlocks.Megafarm, 3),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
 	(Unlocks.Expand, 6),
@@ -81,7 +85,6 @@ ROUTE = [
 	(Unlocks.Mazes, 4),
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
-	(Unlocks.Megafarm, 4),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]

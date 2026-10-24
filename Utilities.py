@@ -44,6 +44,15 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 def CanAfford(crop):
 	return ShortItem(crop) == None
 
+# True when the stock covers one planting of the crop for every drone, so
+# drones racing for the last unit do not fail a plant() call.
+def CanAffordForAll(crop):
+	cost = get_cost(crop)
+	for item in cost:
+		if num_items(item) < cost[item] * max_drones():
+			return False
+	return True
+
 # The first item of the crop's planting cost that is out of stock, or None.
 def ShortItem(crop):
 	cost = get_cost(crop)
