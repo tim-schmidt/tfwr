@@ -42,6 +42,7 @@ def growPumpkinStrip(n, w, water, fertilize):
 			state = pumpkinTile(firstPass, water, fertilize)
 			if state == None:
 				ok = False
+				break
 			elif not state:
 				left.append(tile)
 		pending = left

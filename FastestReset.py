@@ -218,13 +218,16 @@ def farm(item, amount):
 		farmCrops(woodCrop(), woodPartner(), True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
 		# Pumpkins cost carrots per planting: stock the predicted total up
-		# front, grow until it runs out or the target is met, restock.
+		# front, at least two boards' worth since a fifth die and get
+		# replanted, grow until it runs out or the target is met, restock.
 		while not Reached(until):
-			ensurePlantable(Entities.Pumpkin, plantingsFor(item, amount))
+			plantings = max(plantingsFor(item, amount), 2 * n * n, max_drones())
+			ensurePlantable(Entities.Pumpkin, plantings)
 			if dronesOn():
-				CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
+				ok = CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
 			else:
-				CultivatePumpkins(have(Unlocks.Watering), False, until)
+				ok = CultivatePumpkins(have(Unlocks.Watering), False, until)
+			quick_print("pumpkin pass complete", ok, "pumpkins", num_items(Items.Pumpkin), "carrots", num_items(Items.Carrot))
 	elif have(Unlocks.Cactus) and item == Items.Cactus:
 		# Cacti cost pumpkins per planting; same stock-then-grow loop, plus
 		# one board, since the cactus code stops when a full board can no
