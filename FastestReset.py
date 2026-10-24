@@ -35,9 +35,9 @@ ROUTE = [
 	(Unlocks.Expand, 3),
 	(Unlocks.Speed, 3),
 	(Unlocks.Carrots, 2),
-	(Unlocks.Expand, 4),
 	(Unlocks.Trees, 2),
 	(Unlocks.Grass, 3),
+	(Unlocks.Expand, 4),
 	(Unlocks.Watering, 1),
 	(Unlocks.Watering, 2),
 	(Unlocks.Fertilizer, 1),
@@ -178,22 +178,24 @@ def farmGold(amount):
 		CultivateGold(n, harvests - 1, until)
 
 # Power doubles every drone's speed and drains about one unit per 6,000
-# ticks per drone (with the doubling, 800 ticks per second per Speed
-# level). Before a farm phase, when the stock is under a minute of use,
-# fill it to ten minutes. POWERING guards the recursion through the
-# sunflowers' own carrot cost.
+# ticks per running drone (with the doubling, 800 ticks per second per
+# Speed level). Before a farm phase, when the stock is under a minute of
+# use by the drones that phase will run, fill it for `seconds` of them.
+# Bones runs one drone (the hat) for about 850 s, everything else runs all
+# of them. POWERING guards the recursion through the sunflowers' own
+# carrot cost.
 POWERING = [False]
 
-def powerRate():
-	return max_drones() * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
+def powerRate(drones):
+	return drones * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
 
-def topUpPower():
+def topUpPower(drones, seconds):
 	if POWERING[0] or not have(Unlocks.Sunflowers):
 		return
-	rate = powerRate()
+	rate = powerRate(drones)
 	if num_items(Items.Power) < 60 * rate:
 		POWERING[0] = True
-		farm(Items.Power, num_items(Items.Power) + 600 * rate)
+		farm(Items.Power, num_items(Items.Power) + seconds * rate)
 		POWERING[0] = False
 
 # Farm `item` until `amount` is in stock. Returns False when nothing owned
@@ -202,8 +204,10 @@ def farm(item, amount):
 	until = (item, amount)
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
-	if not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower()
+	if have(Unlocks.Dinosaurs) and item == Items.Bone:
+		topUpPower(1, 1000)
+	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
+		topUpPower(max_drones(), 600)
 	if item == Items.Hay:
 		if num_unlocked(Unlocks.Speed) < 2:
 			# Bare grassland regrows ripe grass at once, and below Speed 2 a
