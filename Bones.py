@@ -74,7 +74,9 @@ def lapIndex(n):
 # to the neighbour furthest ahead along the lap that does not pass the apple
 # and does not reach the tail. The body then always occupies a contiguous
 # stretch of the lap behind the head, so no move is ever blocked until the
-# board is full. measure() gives the apple's position. Stops once `tail`
+# board is full. measure() tells where the next apple is, but only while the
+# drone stands on an apple (it does at the start, and the first move eats
+# that one), so the target is read right after each bite. Stops once `tail`
 # segments are on (0 means a full board) or a move fails. From `lapFrom`
 # segments on, the snake just follows the lap: choosing a shortcut costs
 # ticks and a long body leaves little room for one. Returns the tail
@@ -90,55 +92,52 @@ def ShortcutSnake(n, tail = 0, lapFrom = 0, debug = False):
 	h = index[x * n + y]
 	visited = [h]
 	k = 0
-	while tail == 0 or k < tail:
+	a = -1
+	if get_entity_type() == Entities.Apple:
+		k = 1
 		apple = measure()
-		if apple == None:
-			quick_print("snake stop: no apple at", x, y, "tail", k)
-			return k
-		a = index[apple[0] * n + apple[1]]
-		if lapFrom > 0 and k >= lapFrom:
+		if apple != None:
+			a = index[apple[0] * n + apple[1]]
+	while tail == 0 or k < tail:
+		if a < 0 or (lapFrom > 0 and k >= lapFrom):
+			# No known target, or a long body: follow the lap.
 			step = ahead[h]
-			if not move(step[0]):
-				quick_print("snake stop: lap move blocked at", x, y, "tail", k)
+		else:
+			toApple = (a - h) % N
+			tip = visited[len(visited) - 1 - k]
+			limit = N - (h - tip) % N - 1
+			if limit < 1:
+				limit = 1
+			if toApple < limit:
+				limit = toApple
+			bestD = 0
+			step = None
+			for candidate in steps:
+				nx = x + candidate[1]
+				ny = y + candidate[2]
+				if nx >= 0 and nx < n and ny >= 0 and ny < n:
+					d = (index[nx * n + ny] - h) % N
+					if d > bestD and d <= limit:
+						bestD = d
+						step = candidate
+			if debug and len(visited) < 6:
+				quick_print("snake at", x, y, "h", h, "a", a, "limit", limit, "tip", tip, "step", step, "d", bestD)
+			if step == None:
+				quick_print("snake stop: no step at", x, y, "tail", k, "limit", limit)
 				return k
-			x += step[1]
-			y += step[2]
-			h = (h + 1) % N
-			visited.append(h)
-			if h == a:
-				k += 1
-			continue
-		toApple = (a - h) % N
-		tip = visited[len(visited) - 1 - k]
-		limit = N - (h - tip) % N - 1
-		if limit < 1:
-			limit = 1
-		if toApple < limit:
-			limit = toApple
-		bestD = 0
-		best = None
-		for step in steps:
-			nx = x + step[1]
-			ny = y + step[2]
-			if nx >= 0 and nx < n and ny >= 0 and ny < n:
-				d = (index[nx * n + ny] - h) % N
-				if d > bestD and d <= limit:
-					bestD = d
-					best = step
-		if debug and len(visited) < 6:
-			quick_print("snake at", x, y, "h", h, "apple", apple, "a", a, "limit", limit, "tip", tip, "best", best, "d", bestD)
-		if best == None:
-			quick_print("snake stop: no step at", x, y, "tail", k, "limit", limit)
+		if not move(step[0]):
+			quick_print("snake stop: move", step[0], "blocked at", x, y, "tail", k)
 			return k
-		if not move(best[0]):
-			quick_print("snake stop: move", best[0], "blocked at", x, y, "tail", k)
-			return k
-		x += best[1]
-		y += best[2]
+		x += step[1]
+		y += step[2]
 		h = index[x * n + y]
 		visited.append(h)
-		if h == a:
+		if h == a or get_entity_type() == Entities.Apple:
 			k += 1
+			a = -1
+			apple = measure()
+			if apple != None:
+				a = index[apple[0] * n + apple[1]]
 	return k
 
 def CactiForFullGrid(n):
