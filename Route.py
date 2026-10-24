@@ -102,6 +102,8 @@ BASE_ROUTE = [
 #   1  bones by plain Hamiltonian laps, no fourth-snake trim (the old way)
 #   2  power top-ups to 150 s instead of 300 s; bones stock 650/750 s
 #   3  power top-ups to 100 s; bones stock 650/750 s
+#   4  power floor 40 s, top-ups to 70 s; bones stock 650/750 s
+#   5  power floor 25 s, top-ups to 45 s; bones stock 650/750 s
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -125,12 +127,12 @@ BONES_POWER_STOCK = [900, 1000]
 
 def buildRoute(variant):
 	BONES_SHORTCUTS[0] = variant != 1
-	if variant == 2 or variant == 3:
+	if variant >= 2:
 		BONES_POWER_STOCK[0] = 650
 		BONES_POWER_STOCK[1] = 750
-		POWER_STOCK[1] = 150
-		if variant == 3:
-			POWER_STOCK[1] = 100
+		stocks = {2: (60, 150), 3: (60, 100), 4: (40, 70), 5: (25, 45)}
+		POWER_STOCK[0] = stocks[variant][0]
+		POWER_STOCK[1] = stocks[variant][1]
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)

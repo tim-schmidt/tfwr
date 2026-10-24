@@ -2,7 +2,7 @@
 # The game drifts between sessions but repeats exactly within one, so both
 # variants run back to back here and only their difference counts. Edit
 # VARIANTS (see Route.py buildRoute). Run this file directly in the game.
-VARIANTS = [0, 2, 3]
+VARIANTS = [3, 4, 5]
 times = []
 for v in VARIANTS:
 	t = simulate("SimResetStart", [], {}, {"VARIANT": v}, 1, 256)
