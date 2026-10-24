@@ -103,6 +103,14 @@ def woodCrop():
 		return Entities.Bush
 	return Entities.Grass
 
+# Partner for the wood crop. Only trees suffer the identical-neighbour
+# growth penalty (measured: 17x with four tree neighbours, none for grass,
+# bush or carrots), so trees get a grass checkerboard and bushes go solid.
+def woodPartner():
+	if have(Unlocks.Trees):
+		return Entities.Grass
+	return woodCrop()
+
 # Farm whatever the crop costs to plant, enough for `tiles` plantings.
 # Recursive through farm(): pumpkins need carrots, carrots need hay and
 # wood, and each level of the chain farms its own planting cost first.
@@ -196,13 +204,13 @@ def farm(item, amount):
 	if not (have(Unlocks.Sunflowers) and item == Items.Power):
 		topUpPower()
 	if item == Items.Hay:
-		farmCrops(Entities.Grass, woodCrop(), False, until)
+		farmCrops(Entities.Grass, Entities.Grass, False, until)
 	elif have(Unlocks.Plant) and item == Items.Wood:
-		farmCrops(woodCrop(), Entities.Grass, False, until)
+		farmCrops(woodCrop(), woodPartner(), False, until)
 	elif have(Unlocks.Carrots) and item == Items.Carrot:
-		farmCrops(Entities.Carrot, woodCrop(), False, until)
+		farmCrops(Entities.Carrot, Entities.Carrot, False, until)
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
-		farmCrops(woodCrop(), Entities.Grass, True, until)
+		farmCrops(woodCrop(), woodPartner(), True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
 		# Pumpkins cost carrots per planting: stock the predicted total up
 		# front, grow until it runs out or the target is met, restock.
