@@ -102,12 +102,31 @@ def farm_column(n, x, a, b, water, fertilize, poly):
 		move(North)
 		a, b = b, a
 
+# Before the Plant unlock plant() is an error, so the strip is only
+# grazed: harvest whatever regrows, pass after pass, until `until`.
+def graze(n, w, until):
+	while True:
+		for i in range(w):
+			for _ in range(n):
+				if can_harvest():
+					harvest()
+				move(North)
+			if i < w - 1:
+				move(East)
+		for _ in range(w - 1):
+			move(West)
+		if Reached(until):
+			return
+
 # Farm the strip of w columns starting under the drone, forever or until
 # num_items(until[0]) reaches until[1], checked once per pass. Ends back at
 # the strip's first column.
 def farmStrip(w, primaryCrop, secondaryCrop, water, fertilize, companions, until):
 	RefreshSoilCrops()
 	n = get_world_size()
+	if num_unlocked(Unlocks.Plant) == 0:
+		graze(n, w, until)
+		return
 	x0 = get_pos_x()
 	y0 = get_pos_y()
 	poly = None
