@@ -227,11 +227,12 @@ def farm(item, amount):
 	elif have(Unlocks.Mazes) and item == Items.Gold:
 		farmGold(amount)
 	elif have(Unlocks.Sunflowers) and item == Items.Power:
-		# A plain checkerboard sweep: a full sunflower board grows at a
-		# crawl (each identical neighbour halves growth), and carrots as
-		# the partner pay the sunflowers' one-carrot planting cost.
+		# A solid sunflower board through the plain sweep. Measured: no
+		# neighbour penalty shows for sunflowers, and production is bound
+		# by growth, so twice the flowers of a checkerboard is twice the
+		# power. The one-carrot planting cost is stocked up front.
 		ensurePlantable(Entities.Sunflower, plantingsFor(item, amount))
-		farmCrops(Entities.Sunflower, Entities.Carrot, False, until)
+		farmCrops(Entities.Sunflower, Entities.Sunflower, False, until)
 	else:
 		quick_print("FastestReset: no producer for", item, "- route order is wrong")
 		return False
