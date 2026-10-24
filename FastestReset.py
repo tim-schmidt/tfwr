@@ -207,7 +207,7 @@ def farm(item, amount):
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
 		topUpPower(1, 1000)
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower(max_drones(), 600)
+		topUpPower(max_drones(), 300)
 	if item == Items.Hay:
 		if num_unlocked(Unlocks.Speed) < 2:
 			# Bare grassland regrows ripe grass at once, and below Speed 2 a
@@ -245,10 +245,13 @@ def farm(item, amount):
 		# longer be planted.
 		while not Reached(until):
 			ensurePlantable(Entities.Cactus, plantingsFor(item, amount) + n * n + 1)
+			pumpkins = num_items(Items.Pumpkin)
+			cacti = num_items(Items.Cactus)
 			if dronesOn():
 				CultivateCactiWithDrones(have(Unlocks.Watering), False, until)
 			else:
 				CultivateCacti(have(Unlocks.Watering), False, until)
+			quick_print("cactus pass: pumpkins spent", pumpkins - num_items(Items.Pumpkin), "cactus gained", num_items(Items.Cactus) - cacti, "level", num_unlocked(Unlocks.Cactus))
 	elif have(Unlocks.Dinosaurs) and item == Items.Bone:
 		need = CactiForFullGrid(n) + 1
 		if num_items(Items.Cactus) < need:
