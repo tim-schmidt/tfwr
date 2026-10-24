@@ -133,7 +133,11 @@ def yieldOf(item):
 			n = 6
 		return max(1, n * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1) * 4 // 5)
 	if have(Unlocks.Cactus) and item == Items.Cactus:
-		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
+		# Harvesting k cacti at once pays k squared, and the cactus code
+		# sorts and harvests the whole n x n board in one call, so each
+		# planting is worth n*n times the level multiplier.
+		n = get_world_size()
+		return n * n * 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	if have(Unlocks.Sunflowers) and item == Items.Power:
 		# 1 power, or 8 for the flower with the most petals on the farm;
 		# growing flowers count, so harvests average about 1.8, and the
@@ -209,10 +213,11 @@ def farm(item, amount):
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
 		topUpPower(max_drones(), 300)
 	if item == Items.Hay:
-		if num_unlocked(Unlocks.Speed) < 2:
-			# Bare grassland regrows ripe grass at once, and below Speed 2 a
+		if num_unlocked(Unlocks.Speed) < 3:
+			# Bare grassland regrows ripe grass at once, and below Speed 3 a
 			# move costs more than the regrowth, so one tile harvested in
-			# place beats sweeping (measured: 0.52 s per hay against 1.53).
+			# place beats sweeping (measured on 3x3: 0.51 s per hay against
+			# 0.55 at Speed 2, 0.37 at Speed 3).
 			while not Reached(until):
 				if can_harvest():
 					harvest()
