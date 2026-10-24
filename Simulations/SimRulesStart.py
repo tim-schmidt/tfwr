@@ -31,7 +31,9 @@ for crop in crops:
 	put(2, 2, crop)
 	quick_print("companion of", crop, "->", get_companion())
 
-for crop in crops:
+# Pumpkins and cacti are grown as solid boards anyway, and a dead pumpkin
+# never ripens, so only the sweep crops are timed.
+for crop in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot, Entities.Sunflower]:
 	clear()
 	put(1, 1, crop)
 	alone = ripeAfter(1, 1)
