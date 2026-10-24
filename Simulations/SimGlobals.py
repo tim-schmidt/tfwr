@@ -7,4 +7,5 @@
 #   COMPANIONS, DRONES, TARGET - crop test switches (SimCrops)
 #   DISPATCH, REROLL, SHARE, SLOTS - yield mode switches (SimYield)
 #   MODE, WATER - contender number and watering switch (SimTime)
-SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 200000000, "DISPATCH": False, "REROLL": False, "SHARE": 50, "SLOTS": 0, "MODE": 1, "WATER": False}
+#   SATISFY - plant the requested companion or not (SimProbe)
+SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 200000000, "DISPATCH": False, "REROLL": False, "SHARE": 50, "SLOTS": 0, "MODE": 1, "WATER": False, "SATISFY": True}
