@@ -151,6 +151,7 @@ def plantingsFor(item, amount):
 
 def farmCrops(primary, secondary, fertilize, until):
 	n = get_world_size()
+	quick_print("sweep", primary, get_cost(primary), secondary, get_cost(secondary))
 	ensurePlantable(primary, (n * n + 1) // 2)
 	ensurePlantable(secondary, n * n // 2)
 	if dronesOn():
