@@ -8,7 +8,7 @@ def pumpkinTile(firstPass, water, fertilize):
 		TillIfNeeded(Entities.Pumpkin)
 	entity = get_entity_type()
 	if entity == None or entity == Entities.Dead_Pumpkin:
-		if not CanAfford(Entities.Pumpkin):
+		if not CanAffordForAll(Entities.Pumpkin):
 			return None
 		plant(Entities.Pumpkin)
 		WaterIfWanted(water)
@@ -42,6 +42,7 @@ def growPumpkinStrip(n, w, water, fertilize):
 			state = pumpkinTile(firstPass, water, fertilize)
 			if state == None:
 				ok = False
+				break
 			elif not state:
 				left.append(tile)
 		pending = left

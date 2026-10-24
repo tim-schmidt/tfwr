@@ -18,6 +18,10 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 #   Grass 6, Trees 6, Carrots 6, Pumpkins 5, Cactus 3, Watering 7,
 #   Fertilizer 3, Mazes 4, Dinosaurs 4, Expand 7 (16x16), Polyculture 1.
 # Bones at Dinosaurs 4 take four full 16x16 snakes (520k each).
+# Megafarm 1 and 2 moved up to right after Mazes 1 (cheap in gold, and the
+# drones speed up every later phase); Megafarm 3 and 4 right after Mazes 2,
+# where a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
+# Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -51,6 +55,8 @@ ROUTE = [
 	(Unlocks.Watering, 4),
 	(Unlocks.Fertilizer, 3),
 	(Unlocks.Mazes, 1),
+	(Unlocks.Megafarm, 1),
+	(Unlocks.Megafarm, 2),
 	(Unlocks.Trees, 5),
 	(Unlocks.Grass, 6),
 	(Unlocks.Watering, 5),
@@ -68,10 +74,9 @@ ROUTE = [
 	(Unlocks.Cactus, 2),
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
-	(Unlocks.Dinosaurs, 2),
-	(Unlocks.Megafarm, 1),
-	(Unlocks.Megafarm, 2),
 	(Unlocks.Megafarm, 3),
+	(Unlocks.Megafarm, 4),
+	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
 	(Unlocks.Expand, 6),
@@ -81,7 +86,6 @@ ROUTE = [
 	(Unlocks.Mazes, 4),
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
-	(Unlocks.Megafarm, 4),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
@@ -99,6 +103,11 @@ def woodCrop():
 	if have(Unlocks.Plant):
 		return Entities.Bush
 	return Entities.Grass
+
+# Only trees suffer the identical-neighbour growth penalty (measured: 17x
+# with four tree neighbours, none for grass, bush or carrots). Solid grass
+# and bush boards were tried anyway and lost 122 s in the early game: the
+# hay phases' wood partner stocks the wood that carrots cost to plant.
 
 # Farm whatever the crop costs to plant, enough for `tiles` plantings.
 # Recursive through farm(): pumpkins need carrots, carrots need hay and
@@ -126,8 +135,9 @@ def yieldOf(item):
 		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	if have(Unlocks.Sunflowers) and item == Items.Power:
 		# 1 power, or 8 for the flower with the most petals on the farm;
-		# growing flowers count, so about one harvest in nine pays 8.
-		return 2
+		# growing flowers count, so harvests average about 1.8, and the
+		# drones burn power while the phase runs. Low on purpose.
+		return 1.5
 	return 1
 
 # Plantings still needed to bring `item` up to `amount`.
@@ -140,6 +150,7 @@ def plantingsFor(item, amount):
 
 def farmCrops(primary, secondary, fertilize, until):
 	n = get_world_size()
+	quick_print("sweep", primary, get_cost(primary), secondary, get_cost(secondary))
 	ensurePlantable(primary, (n * n + 1) // 2)
 	ensurePlantable(secondary, n * n // 2)
 	if dronesOn():
@@ -197,18 +208,24 @@ def farm(item, amount):
 	elif have(Unlocks.Plant) and item == Items.Wood:
 		farmCrops(woodCrop(), Entities.Grass, False, until)
 	elif have(Unlocks.Carrots) and item == Items.Carrot:
+		# Carrots cost wood to plant, so the partner is the wood crop. A
+		# solid carrot board stalls: the wood fallback puts trees next to
+		# each other, where they take 17x longer to grow.
 		farmCrops(Entities.Carrot, woodCrop(), False, until)
 	elif have(Unlocks.Fertilizer) and item == Items.Weird_Substance:
 		farmCrops(woodCrop(), Entities.Grass, True, until)
 	elif have(Unlocks.Pumpkins) and item == Items.Pumpkin:
 		# Pumpkins cost carrots per planting: stock the predicted total up
-		# front, grow until it runs out or the target is met, restock.
+		# front, at least two boards' worth since a fifth die and get
+		# replanted, grow until it runs out or the target is met, restock.
 		while not Reached(until):
-			ensurePlantable(Entities.Pumpkin, plantingsFor(item, amount))
+			plantings = max(plantingsFor(item, amount), 2 * n * n, max_drones())
+			ensurePlantable(Entities.Pumpkin, plantings)
 			if dronesOn():
-				CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
+				ok = CultivatePumpkinsWithDrones(have(Unlocks.Watering), False, until)
 			else:
-				CultivatePumpkins(have(Unlocks.Watering), False, until)
+				ok = CultivatePumpkins(have(Unlocks.Watering), False, until)
+			quick_print("pumpkin pass complete", ok, "pumpkins", num_items(Items.Pumpkin), "carrots", num_items(Items.Carrot))
 	elif have(Unlocks.Cactus) and item == Items.Cactus:
 		# Cacti cost pumpkins per planting; same stock-then-grow loop, plus
 		# one board, since the cactus code stops when a full board can no

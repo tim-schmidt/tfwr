@@ -44,6 +44,15 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 def CanAfford(crop):
 	return ShortItem(crop) == None
 
+# True when the stock covers one planting of the crop for every drone, so
+# drones racing for the last unit do not fail a plant() call.
+def CanAffordForAll(crop):
+	cost = get_cost(crop)
+	for item in cost:
+		if num_items(item) < cost[item] * max_drones():
+			return False
+	return True
+
 # The first item of the crop's planting cost that is out of stock, or None.
 def ShortItem(crop):
 	cost = get_cost(crop)
@@ -52,19 +61,34 @@ def ShortItem(crop):
 			return item
 	return None
 
-# A free crop that produces `item`: grass for hay, tree or bush for wood,
-# grass for anything else. Items are only named behind their unlock.
-def ProducerOf(item):
+# The crop that yields `item`: grass for hay, tree or bush for wood,
+# carrots for carrots, grass for anything else. Items are only named
+# behind their unlock.
+def CropFor(item):
 	if item == Items.Hay:
 		return Entities.Grass
 	if num_unlocked(Unlocks.Plant) > 0 and item == Items.Wood:
 		if num_unlocked(Unlocks.Trees) > 0:
 			return Entities.Tree
 		return Entities.Bush
+	if num_unlocked(Unlocks.Carrots) > 0 and item == Items.Carrot:
+		return Entities.Carrot
 	return Entities.Grass
 
+# An affordable crop that produces `item`, or failing that one that
+# produces what its producer lacks: a sunflower tile short of carrots gets
+# a carrot, a carrot tile short of wood gets a tree. Grass ends the chain.
+def ProducerOf(item):
+	crop = CropFor(item)
+	short = ShortItem(crop)
+	if short == None or short == item:
+		return crop
+	return ProducerOf(short)
+
+# Fertilize when wanted and the stock holds a unit per drone, since drones
+# race for the last one.
 def FertilizeIfWanted(wanted = False):
-	if wanted and num_items(Items.Fertilizer) > 0:
+	if wanted and num_items(Items.Fertilizer) >= max_drones():
 		use_item(Items.Fertilizer)
 
 # True when an (item, amount) stop condition is met. None never stops.
