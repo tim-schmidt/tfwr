@@ -148,29 +148,42 @@ def CactiForFullGrid(n):
 def bonesFor(k):
 	return k * k * 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
 
-# Tail length whose bones reach `amount` more, 0 for a full board when a
-# full snake does not get there.
+# Tail length whose bones reach `amount` more, plus one segment of margin
+# since the snake's own count can run one high at the end; 0 for a full
+# board when a full snake does not get there.
 def tailFor(n, amount):
 	k = 1
 	while bonesFor(k) < amount and k < n * n - 1:
 		k += 1
-	if k >= n * n - 1:
+	if k + 1 >= n * n - 1:
 		return 0
-	return k
+	return k + 1
+
+# Shortcuts pay while the body is short; from this many segments on the
+# snake follows the lap. Measured on 16x16 for one full snake, unpowered,
+# mean of three seeds: lap only 417 s; shortcuts all the way 880 s; lap
+# from 16/32/48/64/96/128 segments 395/328/298/288/300/361 s.
+LAP_FROM = 64
 
 # Each snake: hat on, shortcut snake until the board is full or the bones
 # still missing are on the tail, cash out. Repeats while there are enough
 # cacti to fill the grid with apples and `until` (None or (item, amount))
-# is not reached.
-def CultivateBones(until = None):
+# is not reached. `shortcuts` False runs the plain lap without the trim,
+# kept for A/B tests.
+def CultivateBones(until = None, shortcuts = True):
 	n = get_world_size()
 	clear()
 
 	while num_items(Items.Cactus) > CactiForFullGrid(n) and not Reached(until):
-		tail = 0
-		if until != None:
-			tail = tailFor(n, until[1] - num_items(until[0]))
 		change_hat(Hats.Dinosaur_Hat)
-		k = ShortcutSnake(n, tail)
+		if shortcuts:
+			tail = 0
+			if until != None:
+				tail = tailFor(n, until[1] - num_items(until[0]))
+			k = ShortcutSnake(n, tail, LAP_FROM)
+		else:
+			k = 0
+			while BonesLap(n):
+				pass
 		CashOutBones()
 		quick_print("snake tail", k, "bones", num_items(Items.Bone))

@@ -98,7 +98,8 @@ BASE_ROUTE = [
 
 # Route variants for in-session A/B tests (SimReset runs two back to back;
 # the game drifts between sessions, so only same-call comparisons count).
-#   0  the route above (no other variant defined at the moment)
+#   0  the route above
+#   1  bones by plain Hamiltonian laps, no fourth-snake trim (the old way)
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -114,7 +115,10 @@ def moveStep(route, step, before):
 			out.append(s)
 	return out
 
+BONES_SHORTCUTS = [True]
+
 def buildRoute(variant):
+	BONES_SHORTCUTS[0] = variant != 1
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
@@ -292,7 +296,7 @@ def farm(item, amount):
 		need = CactiForFullGrid(n) + 1
 		if num_items(Items.Cactus) < need:
 			farm(Items.Cactus, need)
-		CultivateBones(until)
+		CultivateBones(until, BONES_SHORTCUTS[0])
 	elif have(Unlocks.Mazes) and item == Items.Gold:
 		farmGold(amount)
 	elif have(Unlocks.Sunflowers) and item == Items.Power:
