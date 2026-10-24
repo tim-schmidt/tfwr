@@ -102,7 +102,8 @@ BASE_ROUTE = [
 #   1  Grass 2 and 3 right after Expand 4 instead of their places
 #   2  Expand 4 before Trees 2 and Grass 3
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
-# 3.8 s (3,301.9 against 3,305.7) and is now in the base route.
+# 3.8 s (3,301.9 against 3,305.7) and is now in the base route. Variant 1
+# lost by 30 s (3,482.1 against 3,451.7).
 def moveStep(route, step, before):
 	out = []
 	for s in route:
