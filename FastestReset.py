@@ -24,8 +24,9 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 # Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
 # Megafarm 4 and 5 stay after Mazes 4, where gold is cheapest.
 # A third tuple element True marks an optional step: bought only when the
-# cost is already in stock, never farmed for. Watering 8 and 9 ride on the
-# wood that piles up as a byproduct of the tree partner in carrot sweeps.
+# cost is already in stock, never farmed for. (Watering 8 and 9 were tried
+# this way; the byproduct wood only piles up during the final sweeps, so
+# they never fired.)
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -79,7 +80,6 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
 	(Unlocks.Megafarm, 3),
-	(Unlocks.Watering, 8, True),
 	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
@@ -91,7 +91,6 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
 	(Unlocks.Megafarm, 4),
-	(Unlocks.Watering, 9, True),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
