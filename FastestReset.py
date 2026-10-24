@@ -13,9 +13,8 @@ from Bones import CultivateBones, CactiForFullGrid
 from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 
 # The order of Unlocks.md with the programming unlocks (already owned in
-# a leaderboard run) removed, Sunflowers left out until a power phase
-# exists, and levels above these caps skipped, since their cost outgrows
-# what the rest of the route can earn back:
+# a leaderboard run) removed and levels above these caps skipped, since
+# their cost outgrows what the rest of the route can earn back:
 #   Grass 6, Trees 6, Carrots 6, Pumpkins 5, Cactus 3, Watering 7,
 #   Fertilizer 3, Mazes 4, Dinosaurs 4, Expand 7 (16x16), Polyculture 1.
 # Bones at Dinosaurs 4 take four full 16x16 snakes (520k each).
@@ -46,6 +45,7 @@ ROUTE = [
 	(Unlocks.Fertilizer, 2),
 	(Unlocks.Speed, 5),
 	(Unlocks.Carrots, 4),
+	(Unlocks.Sunflowers, 1),
 	(Unlocks.Trees, 4),
 	(Unlocks.Grass, 5),
 	(Unlocks.Watering, 4),
@@ -124,6 +124,10 @@ def yieldOf(item):
 		return max(1, n * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1) * 4 // 5)
 	if have(Unlocks.Cactus) and item == Items.Cactus:
 		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
+	if have(Unlocks.Sunflowers) and item == Items.Power:
+		# 1 power, or 8 for the flower with the most petals on the farm;
+		# growing flowers count, so about one harvest in nine pays 8.
+		return 2
 	return 1
 
 # Plantings still needed to bring `item` up to `amount`.
@@ -161,12 +165,33 @@ def farmGold(amount):
 	else:
 		CultivateGold(n, harvests - 1, until)
 
+# Power doubles every drone's speed and drains about one unit per 6,000
+# ticks per drone (with the doubling, 800 ticks per second per Speed
+# level). Before a farm phase, when the stock is under a minute of use,
+# fill it to ten minutes. POWERING guards the recursion through the
+# sunflowers' own carrot cost.
+POWERING = [False]
+
+def powerRate():
+	return max_drones() * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
+
+def topUpPower():
+	if POWERING[0] or not have(Unlocks.Sunflowers):
+		return
+	rate = powerRate()
+	if num_items(Items.Power) < 60 * rate:
+		POWERING[0] = True
+		farm(Items.Power, num_items(Items.Power) + 600 * rate)
+		POWERING[0] = False
+
 # Farm `item` until `amount` is in stock. Returns False when nothing owned
 # can produce it, which means the route is ordered wrong.
 def farm(item, amount):
 	until = (item, amount)
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
+	if not (have(Unlocks.Sunflowers) and item == Items.Power):
+		topUpPower()
 	if item == Items.Hay:
 		farmCrops(Entities.Grass, woodCrop(), False, until)
 	elif have(Unlocks.Plant) and item == Items.Wood:
@@ -201,6 +226,13 @@ def farm(item, amount):
 		CultivateBones(until)
 	elif have(Unlocks.Mazes) and item == Items.Gold:
 		farmGold(amount)
+	elif have(Unlocks.Sunflowers) and item == Items.Power:
+		# A solid sunflower board through the plain sweep. Measured: no
+		# neighbour penalty shows for sunflowers, and production is bound
+		# by growth, so twice the flowers of a checkerboard is twice the
+		# power. The one-carrot planting cost is stocked up front.
+		ensurePlantable(Entities.Sunflower, plantingsFor(item, amount))
+		farmCrops(Entities.Sunflower, Entities.Sunflower, False, until)
 	else:
 		quick_print("FastestReset: no producer for", item, "- route order is wrong")
 		return False
