@@ -187,23 +187,24 @@ def farmGold(amount):
 
 # Power doubles every drone's speed and drains about one unit per 6,000
 # ticks per running drone (with the doubling, 800 ticks per second per
-# Speed level). Before a farm phase, when the stock is under a minute of
-# use by the drones that phase will run, fill it for `seconds` of them.
-# Bones runs one drone (the hat) for about 850 s, everything else runs all
-# of them. POWERING guards the recursion through the sunflowers' own
-# carrot cost.
+# Speed level). Before a farm phase, when the stock is under `floor`
+# seconds of use by the drones that phase will run, fill it to `target`
+# seconds of them. Bones runs one drone (the hat) for about 850 s with no
+# top-up inside, so it needs the whole phase in stock up front; everything
+# else runs all drones and gets a minute's floor and five minutes' target.
+# POWERING guards the recursion through the sunflowers' own carrot cost.
 POWERING = [False]
 
 def powerRate(drones):
 	return drones * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
 
-def topUpPower(drones, seconds):
+def topUpPower(drones, floor, target):
 	if POWERING[0] or not have(Unlocks.Sunflowers):
 		return
 	rate = powerRate(drones)
-	if num_items(Items.Power) < 60 * rate:
+	if num_items(Items.Power) < floor * rate:
 		POWERING[0] = True
-		farm(Items.Power, num_items(Items.Power) + seconds * rate)
+		farm(Items.Power, target * rate)
 		POWERING[0] = False
 
 # Farm `item` until `amount` is in stock. Returns False when nothing owned
@@ -213,9 +214,9 @@ def farm(item, amount):
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
-		topUpPower(1, 1000)
+		topUpPower(1, 900, 1000)
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower(max_drones(), 300)
+		topUpPower(max_drones(), 60, 300)
 	if item == Items.Hay:
 		if num_unlocked(Unlocks.Speed) < 3:
 			# Bare grassland regrows ripe grass at once, and below Speed 3 a
