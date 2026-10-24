@@ -92,6 +92,7 @@ def farmGold(amount):
 def farm(item, amount):
 	until = (item, amount)
 	n = get_world_size()
+	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
 	if item == Items.Hay:
 		farmCrops(Entities.Grass, woodCrop(), False, until)
 	elif have(Unlocks.Plant) and item == Items.Wood:
@@ -130,6 +131,7 @@ def run():
 		level = step[1]
 		while num_unlocked(target) < level:
 			cost = get_cost(target)
+			quick_print("route", target, "level", num_unlocked(target), "->", level, "cost", cost)
 			short = None
 			for item in cost:
 				if num_items(item) < cost[item]:
