@@ -95,6 +95,7 @@ def goHome():
 # `until` is None or (item, amount) to stop at, checked per harvest.
 def CultivateCacti(water = False, fertilize = False, until = None):
 	RefreshSoilCrops()
+	clear()
 	n = get_world_size()
 	while num_items(Items.Pumpkin) > n * n * get_cost(Entities.Cactus)[Items.Pumpkin] and not Reached(until):
 		goHome()
@@ -136,6 +137,7 @@ def runPhase(worker, step, n, w, water, fertilize):
 		wait_for(drone)
 
 def CultivateCactiWithDrones(water = False, fertilize = False, until = None):
+	clear()
 	n, w, d = layout()
 	while get_pos_x() != 0:
 		move(West)
