@@ -23,6 +23,9 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 # a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
 # Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
 # Megafarm 4 and 5 stay after Mazes 4, where gold is cheapest.
+# A third tuple element True marks an optional step: bought only when the
+# cost is already in stock, never farmed for. Watering 8 and 9 ride on the
+# wood that piles up as a byproduct of the tree partner in carrot sweeps.
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -76,6 +79,7 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
 	(Unlocks.Megafarm, 3),
+	(Unlocks.Watering, 8, True),
 	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
@@ -87,6 +91,7 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
 	(Unlocks.Megafarm, 4),
+	(Unlocks.Watering, 9, True),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
@@ -280,6 +285,7 @@ def run():
 	for step in ROUTE:
 		target = step[0]
 		level = step[1]
+		optional = len(step) > 2
 		while num_unlocked(target) < level:
 			cost = get_cost(target)
 			quick_print("t", get_time() // 1, "route", target, "level", num_unlocked(target), "->", level, "cost", cost)
@@ -289,6 +295,9 @@ def run():
 					short = item
 			if short == None:
 				unlock(target)
+			elif optional:
+				quick_print("skipped optional", target, "short of", short)
+				break
 			elif not farm(short, cost[short]):
 				return
 	quick_print("FastestReset: done, Leaderboard level", num_unlocked(Unlocks.Leaderboard))
