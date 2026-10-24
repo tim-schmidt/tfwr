@@ -137,8 +137,9 @@ def yieldOf(item):
 		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	if have(Unlocks.Sunflowers) and item == Items.Power:
 		# 1 power, or 8 for the flower with the most petals on the farm;
-		# growing flowers count, so about one harvest in nine pays 8.
-		return 2
+		# growing flowers count, so harvests average about 1.8, and the
+		# drones burn power while the phase runs. Low on purpose.
+		return 1.5
 	return 1
 
 # Plantings still needed to bring `item` up to `amount`.

@@ -61,16 +61,29 @@ def ShortItem(crop):
 			return item
 	return None
 
-# A free crop that produces `item`: grass for hay, tree or bush for wood,
-# grass for anything else. Items are only named behind their unlock.
-def ProducerOf(item):
+# The crop that yields `item`: grass for hay, tree or bush for wood,
+# carrots for carrots, grass for anything else. Items are only named
+# behind their unlock.
+def CropFor(item):
 	if item == Items.Hay:
 		return Entities.Grass
 	if num_unlocked(Unlocks.Plant) > 0 and item == Items.Wood:
 		if num_unlocked(Unlocks.Trees) > 0:
 			return Entities.Tree
 		return Entities.Bush
+	if num_unlocked(Unlocks.Carrots) > 0 and item == Items.Carrot:
+		return Entities.Carrot
 	return Entities.Grass
+
+# An affordable crop that produces `item`, or failing that one that
+# produces what its producer lacks: a sunflower tile short of carrots gets
+# a carrot, a carrot tile short of wood gets a tree. Grass ends the chain.
+def ProducerOf(item):
+	crop = CropFor(item)
+	short = ShortItem(crop)
+	if short == None or short == item:
+		return crop
+	return ProducerOf(short)
 
 # Fertilize when wanted and the stock holds a unit per drone, since drones
 # race for the last one.
