@@ -2,7 +2,7 @@
 #   1 substance: Weird Substance from one fertilized tree, request met or not
 #   2 unlocks: how simulate() reads a partial unlock sequence
 #   3 power: sunflower power with the 8x rule and without
-#   4 bones: one full snake on 16x16 with Bones.py as it stands
+#   (bones moved to SimBones.py)
 from SimGlobals import SIM_GLOBALS
 
 items = {Items.Power: 1000000000, Items.Hay: 1000000000, Items.Wood: 1000000000, Items.Carrot: 1000000000, Items.Water: 1000000000, Items.Fertilizer: 100, Items.Cactus: 1000000000}
@@ -23,7 +23,3 @@ for case in cases:
 for seed in seeds:
 	simulate("SimPowerStart", Unlocks, items, SIM_GLOBALS, seed, speedup)
 
-SIM_GLOBALS["WORLD"] = 16
-for seed in seeds:
-	t = simulate("SimBonesStart", Unlocks, items, SIM_GLOBALS, seed, speedup)
-	quick_print("bones probe seed", seed, "time", t)
