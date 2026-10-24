@@ -207,10 +207,12 @@ def farmGold(amount):
 	if OPTIONS["goldPower"]:
 		# Power for the whole gold phase up front, so the generic one-minute
 		# check never interrupts a maze between its 301-harvest chunks.
-		# Shared-maze harvesting measured about 0.14 harvests per second
-		# per drone on 16x16; single drones on small mazes run faster, so
-		# early gold phases get a little more power than they use.
-		seconds = harvests / (0.14 * max_drones())
+		# Measured maze harvest rates: about 1.75 per second per drone,
+		# saturating near 3.5 per second however many drones share a maze.
+		rate = 1.75 * max_drones()
+		if rate > 3.5:
+			rate = 3.5
+		seconds = harvests / rate
 		topUpPower(max_drones(), seconds, seconds + 60)
 	if harvests > 301:
 		harvests = 301
