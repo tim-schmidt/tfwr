@@ -1,12 +1,11 @@
-# Full leaderboard route in a simulation: no unlocks, no items. Runs seed 1
-# three times and prints each time and the mean, since identical code has
-# shown about 100 s of run-to-run noise. Run this file directly in the game.
+# Leaderboard route A/B in one simulation call: no unlocks, no items, seed 1.
+# The game drifts between sessions but repeats exactly within one, so both
+# variants run back to back here and only their difference counts. Edit
+# VARIANTS (see Route.py buildRoute). Run this file directly in the game.
+VARIANTS = [0, 0]
 times = []
-for seed in [1, 1, 1]:
-	t = simulate("FastestReset", [], {}, {}, seed, 256)
+for v in VARIANTS:
+	t = simulate("SimResetStart", [], {}, {"VARIANT": v}, 1, 256)
 	times.append(t)
-	quick_print("FastestReset sim time", t)
-total = 0
-for t in times:
-	total += t
-quick_print("FastestReset mean of", len(times), "runs", total / len(times), "times", times)
+	quick_print("variant", v, "sim time", t)
+quick_print("variants", VARIANTS, "times", times)
