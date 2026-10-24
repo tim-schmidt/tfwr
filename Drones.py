@@ -57,6 +57,15 @@ def sameNeighbour(n, x, y, crop, poly):
 			return True
 	return False
 
+# Put `crop` on the tile under the drone. Bare grassland regrows grass on
+# its own, instantly and ripe (measured), so grass there is never planted:
+# that saves the 200-tick plant() on every grass tile of every pass.
+def sow(crop):
+	if crop == Entities.Grass and get_ground_type() == Grounds.Grassland:
+		return
+	TillIfNeeded(crop)
+	plant(crop)
+
 # Plant the tile under the drone. When `crop` cannot be afforded, plant a
 # free crop that produces the missing item instead, so the board keeps
 # paying for the crop that costs something and no plant() call fails.
@@ -73,8 +82,7 @@ def plantTile(n, x, y, crop, other, poly):
 	if short != None:
 		crop = ProducerOf(short)
 	if poly == None:
-		TillIfNeeded(crop)
-		plant(crop)
+		sow(crop)
 		return True
 	tile = (x, y)
 	wanted = poly["wanted"]
@@ -82,8 +90,7 @@ def plantTile(n, x, y, crop, other, poly):
 		if CanAfford(wanted[tile]):
 			if not sameNeighbour(n, x, y, wanted[tile], poly):
 				crop = wanted[tile]
-	TillIfNeeded(crop)
-	plant(crop)
+	sow(crop)
 	poly["planted"][tile] = crop
 	met = False
 	ask = get_companion()

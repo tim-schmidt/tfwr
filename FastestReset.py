@@ -19,9 +19,14 @@ from Gold import CultivateGold, CultivateGoldWithDrones, substanceFor
 #   Fertilizer 3, Mazes 4, Dinosaurs 4, Expand 7 (16x16), Polyculture 1.
 # Bones at Dinosaurs 4 take four full 16x16 snakes (520k each).
 # Megafarm 1 and 2 moved up to right after Mazes 1 (cheap in gold, and the
-# drones speed up every later phase); Megafarm 3 and 4 right after Mazes 2,
-# where a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
+# drones speed up every later phase); Megafarm 3 right after Mazes 2, where
+# a maze harvest pays 128 gold instead of 36. Measured: Megafarm 3 at
 # Mazes 1 on 6x6 cost 618 s of maze time, more than its drones saved.
+# Megafarm 4 and 5 stay after Mazes 4, where gold is cheapest.
+# A third tuple element True marks an optional step: bought only when the
+# cost is already in stock, never farmed for. (Watering 8 and 9 were tried
+# this way; the byproduct wood only piles up during the final sweeps, so
+# they never fired.)
 ROUTE = [
 	(Unlocks.Speed, 1),
 	(Unlocks.Expand, 1),
@@ -75,7 +80,6 @@ ROUTE = [
 	(Unlocks.Dinosaurs, 1),
 	(Unlocks.Mazes, 2),
 	(Unlocks.Megafarm, 3),
-	(Unlocks.Megafarm, 4),
 	(Unlocks.Dinosaurs, 2),
 	(Unlocks.Watering, 7),
 	(Unlocks.Pumpkins, 5),
@@ -86,6 +90,7 @@ ROUTE = [
 	(Unlocks.Mazes, 4),
 	(Unlocks.Dinosaurs, 3),
 	(Unlocks.Dinosaurs, 4),
+	(Unlocks.Megafarm, 4),
 	(Unlocks.Megafarm, 5),
 	(Unlocks.Leaderboard, 1),
 ]
@@ -132,7 +137,11 @@ def yieldOf(item):
 			n = 6
 		return max(1, n * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1) * 4 // 5)
 	if have(Unlocks.Cactus) and item == Items.Cactus:
-		return 2 ** (num_unlocked(Unlocks.Cactus) - 1)
+		# Harvesting k cacti at once pays k squared, and the cactus code
+		# sorts and harvests the whole n x n board in one call, so each
+		# planting is worth n*n times the level multiplier.
+		n = get_world_size()
+		return n * n * 2 ** (num_unlocked(Unlocks.Cactus) - 1)
 	if have(Unlocks.Sunflowers) and item == Items.Power:
 		# 1 power, or 8 for the flower with the most petals on the farm;
 		# growing flowers count, so harvests average about 1.8, and the
@@ -177,22 +186,24 @@ def farmGold(amount):
 		CultivateGold(n, harvests - 1, until)
 
 # Power doubles every drone's speed and drains about one unit per 6,000
-# ticks per drone (with the doubling, 800 ticks per second per Speed
-# level). Before a farm phase, when the stock is under a minute of use,
-# fill it to ten minutes. POWERING guards the recursion through the
-# sunflowers' own carrot cost.
+# ticks per running drone (with the doubling, 800 ticks per second per
+# Speed level). Before a farm phase, when the stock is under a minute of
+# use by the drones that phase will run, fill it for `seconds` of them.
+# Bones runs one drone (the hat) for about 850 s, everything else runs all
+# of them. POWERING guards the recursion through the sunflowers' own
+# carrot cost.
 POWERING = [False]
 
-def powerRate():
-	return max_drones() * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
+def powerRate(drones):
+	return drones * 800 * 1.5 ** num_unlocked(Unlocks.Speed) / 6000
 
-def topUpPower():
+def topUpPower(drones, seconds):
 	if POWERING[0] or not have(Unlocks.Sunflowers):
 		return
-	rate = powerRate()
+	rate = powerRate(drones)
 	if num_items(Items.Power) < 60 * rate:
 		POWERING[0] = True
-		farm(Items.Power, num_items(Items.Power) + 600 * rate)
+		farm(Items.Power, num_items(Items.Power) + seconds * rate)
 		POWERING[0] = False
 
 # Farm `item` until `amount` is in stock. Returns False when nothing owned
@@ -201,10 +212,21 @@ def farm(item, amount):
 	until = (item, amount)
 	n = get_world_size()
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
-	if not (have(Unlocks.Sunflowers) and item == Items.Power):
-		topUpPower()
+	if have(Unlocks.Dinosaurs) and item == Items.Bone:
+		topUpPower(1, 1000)
+	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
+		topUpPower(max_drones(), 300)
 	if item == Items.Hay:
-		farmCrops(Entities.Grass, woodCrop(), False, until)
+		if num_unlocked(Unlocks.Speed) < 3:
+			# Bare grassland regrows ripe grass at once, and below Speed 3 a
+			# move costs more than the regrowth, so one tile harvested in
+			# place beats sweeping (measured on 3x3: 0.51 s per hay against
+			# 0.55 at Speed 2, 0.37 at Speed 3).
+			while not Reached(until):
+				if can_harvest():
+					harvest()
+		else:
+			farmCrops(Entities.Grass, woodCrop(), False, until)
 	elif have(Unlocks.Plant) and item == Items.Wood:
 		farmCrops(woodCrop(), Entities.Grass, False, until)
 	elif have(Unlocks.Carrots) and item == Items.Carrot:
@@ -232,10 +254,13 @@ def farm(item, amount):
 		# longer be planted.
 		while not Reached(until):
 			ensurePlantable(Entities.Cactus, plantingsFor(item, amount) + n * n + 1)
+			pumpkins = num_items(Items.Pumpkin)
+			cacti = num_items(Items.Cactus)
 			if dronesOn():
 				CultivateCactiWithDrones(have(Unlocks.Watering), False, until)
 			else:
 				CultivateCacti(have(Unlocks.Watering), False, until)
+			quick_print("cactus pass: pumpkins spent", pumpkins - num_items(Items.Pumpkin), "cactus gained", num_items(Items.Cactus) - cacti, "level", num_unlocked(Unlocks.Cactus))
 	elif have(Unlocks.Dinosaurs) and item == Items.Bone:
 		need = CactiForFullGrid(n) + 1
 		if num_items(Items.Cactus) < need:
@@ -259,6 +284,7 @@ def run():
 	for step in ROUTE:
 		target = step[0]
 		level = step[1]
+		optional = len(step) > 2
 		while num_unlocked(target) < level:
 			cost = get_cost(target)
 			quick_print("t", get_time() // 1, "route", target, "level", num_unlocked(target), "->", level, "cost", cost)
@@ -268,8 +294,14 @@ def run():
 					short = item
 			if short == None:
 				unlock(target)
+			elif optional:
+				quick_print("skipped optional", target, "short of", short)
+				break
 			elif not farm(short, cost[short]):
 				return
 	quick_print("FastestReset: done, Leaderboard level", num_unlocked(Unlocks.Leaderboard))
+	# Leftover stock: anything large here was farmed past its need.
+	for item in [Items.Hay, Items.Wood, Items.Carrot, Items.Pumpkin, Items.Cactus, Items.Gold, Items.Bone, Items.Power, Items.Weird_Substance, Items.Water, Items.Fertilizer]:
+		quick_print("left", item, num_items(item))
 
 run()
