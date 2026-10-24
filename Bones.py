@@ -28,18 +28,162 @@ def BonesLap(n):
 			return False
 	return True
 
+EAST = (East, 1, 0)
+WEST = (West, -1, 0)
+NORTH = (North, 0, 1)
+SOUTH = (South, 0, -1)
+
+# The lap above as a cycle. Returns (index, ahead): index[x * n + y] is the
+# position of tile (x, y) along the lap counted from (0, 0); ahead[i] is the
+# step (direction, dx, dy) from lap position i to i + 1.
+def lapIndex(n):
+	N = n * n
+	index = []
+	ahead = []
+	for _ in range(N):
+		index.append(0)
+		ahead.append(NORTH)
+	x = 0
+	y = 1
+	i = 1
+	for column in range(n):
+		step = NORTH
+		if IsOdd(column):
+			step = SOUTH
+		for _ in range(n - 2):
+			index[x * n + y] = i
+			ahead[i] = step
+			i += 1
+			y += step[2]
+		index[x * n + y] = i
+		if column < n - 1:
+			ahead[i] = EAST
+			x += 1
+		else:
+			ahead[i] = SOUTH
+			y -= 1
+		i += 1
+	for _ in range(n - 1):
+		index[x * n + y] = i
+		ahead[i] = WEST
+		i += 1
+		x -= 1
+	return (index, ahead)
+
+# One snake that follows the lap but takes shortcuts: from the head it steps
+# to the neighbour furthest ahead along the lap that does not pass the apple
+# and does not reach the tail. The body then always occupies a contiguous
+# stretch of the lap behind the head, so no move is ever blocked until the
+# board is full. measure() tells where the next apple is, but only while the
+# drone stands on an apple (it does at the start, and the first move eats
+# that one), so the target is read right after each bite. Stops once `tail`
+# segments are on (0 means a full board) or a move fails. From `lapFrom`
+# segments on, the snake just follows the lap: choosing a shortcut costs
+# ticks and a long body leaves little room for one. Returns the tail
+# length reached.
+def ShortcutSnake(n, tail = 0, lapFrom = 0, debug = False):
+	N = n * n
+	tables = lapIndex(n)
+	index = tables[0]
+	ahead = tables[1]
+	steps = [EAST, WEST, NORTH, SOUTH]
+	x = get_pos_x()
+	y = get_pos_y()
+	h = index[x * n + y]
+	visited = [h]
+	k = 0
+	a = -1
+	if get_entity_type() == Entities.Apple:
+		k = 1
+		apple = measure()
+		if apple != None:
+			a = index[apple[0] * n + apple[1]]
+	while tail == 0 or k < tail:
+		if a < 0 or (lapFrom > 0 and k >= lapFrom):
+			# No known target, or a long body: follow the lap.
+			step = ahead[h]
+		else:
+			toApple = (a - h) % N
+			tip = visited[len(visited) - 1 - k]
+			limit = N - (h - tip) % N - 1
+			if limit < 1:
+				limit = 1
+			if toApple < limit:
+				limit = toApple
+			bestD = 0
+			step = None
+			for candidate in steps:
+				nx = x + candidate[1]
+				ny = y + candidate[2]
+				if nx >= 0 and nx < n and ny >= 0 and ny < n:
+					d = (index[nx * n + ny] - h) % N
+					if d > bestD and d <= limit:
+						bestD = d
+						step = candidate
+			if debug and len(visited) < 6:
+				quick_print("snake at", x, y, "h", h, "a", a, "limit", limit, "tip", tip, "step", step, "d", bestD)
+			if step == None:
+				quick_print("snake stop: no step at", x, y, "tail", k, "limit", limit)
+				return k
+		if not move(step[0]):
+			quick_print("snake stop: move", step[0], "blocked at", x, y, "tail", k)
+			return k
+		x += step[1]
+		y += step[2]
+		h = index[x * n + y]
+		visited.append(h)
+		if h == a or get_entity_type() == Entities.Apple:
+			k += 1
+			a = -1
+			apple = measure()
+			if apple != None:
+				a = index[apple[0] * n + apple[1]]
+	return k
+
 def CactiForFullGrid(n):
 	return n * n * get_cost(Entities.Apple)[Items.Cactus]
 
-# Each harvest: hat on, lap until the tail blocks a move, cash out.
-# Repeats while there are enough cacti to fill the grid with apples and
-# `until` (None or (item, amount)) is not reached.
-def CultivateBones(until = None):
+# Bones from a tail of k segments: k * k times the Dinosaurs multiplier, which
+# doubles per level from 1 at level 1.
+def bonesFor(k):
+	return k * k * 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
+
+# Tail length whose bones reach `amount` more, plus one segment of margin
+# since the snake's own count can run one high at the end; 0 for a full
+# board when a full snake does not get there.
+def tailFor(n, amount):
+	k = 1
+	while bonesFor(k) < amount and k < n * n - 1:
+		k += 1
+	if k + 1 >= n * n - 1:
+		return 0
+	return k + 1
+
+# Shortcuts pay while the body is short; from this many segments on the
+# snake follows the lap. Measured on 16x16 for one full snake, unpowered,
+# mean of three seeds: lap only 417 s; shortcuts all the way 880 s; lap
+# from 16/32/48/64/96/128 segments 395/328/298/288/300/361 s.
+LAP_FROM = 64
+
+# Each snake: hat on, shortcut snake until the board is full or the bones
+# still missing are on the tail, cash out. Repeats while there are enough
+# cacti to fill the grid with apples and `until` (None or (item, amount))
+# is not reached. `shortcuts` False runs the plain lap without the trim,
+# kept for A/B tests.
+def CultivateBones(until = None, shortcuts = True):
 	n = get_world_size()
 	clear()
 
 	while num_items(Items.Cactus) > CactiForFullGrid(n) and not Reached(until):
 		change_hat(Hats.Dinosaur_Hat)
-		while BonesLap(n):
-			pass
+		if shortcuts:
+			tail = 0
+			if until != None:
+				tail = tailFor(n, until[1] - num_items(until[0]))
+			k = ShortcutSnake(n, tail, LAP_FROM)
+		else:
+			k = 0
+			while BonesLap(n):
+				pass
 		CashOutBones()
+		quick_print("snake tail", k, "bones", num_items(Items.Bone))
