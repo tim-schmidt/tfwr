@@ -98,15 +98,13 @@ BASE_ROUTE = [
 
 # Route variants for in-session A/B tests (SimReset runs two back to back;
 # the game drifts between sessions, so only same-call comparisons count).
-#   0  the route above
-#   1  gold phases use the generic one-minute power check instead of
-#      sizing their power up front
+#   0  the route above (no other variant defined at the moment)
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
 # Grass 2 and 3 after Expand 4 lost by 30 s (3,482.1 against 3,451.7).
-OPTIONS = {"goldPower": True}
-
+# Sizing a gold phase's power up front from its harvest count lost by 150
+# to 170 s: the estimate undershot real phase lengths and mazes ran dry.
 def moveStep(route, step, before):
 	out = []
 	for s in route:
@@ -120,8 +118,6 @@ def buildRoute(variant):
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
-	if variant == 1:
-		OPTIONS["goldPower"] = False
 	return route
 
 
@@ -204,16 +200,6 @@ def farmGold(amount):
 	per = n * n * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 	missing = amount - num_items(Items.Gold)
 	harvests = (missing + per - 1) // per
-	if OPTIONS["goldPower"]:
-		# Power for the whole gold phase up front, so the generic one-minute
-		# check never interrupts a maze between its 301-harvest chunks.
-		# Measured maze harvest rates: about 1.75 per second per drone,
-		# saturating near 3.5 per second however many drones share a maze.
-		rate = 1.75 * max_drones()
-		if rate > 3.5:
-			rate = 3.5
-		seconds = harvests / rate
-		topUpPower(max_drones(), seconds, seconds + 60)
 	if harvests > 301:
 		harvests = 301
 	need = harvests * substanceFor(n)
@@ -255,8 +241,6 @@ def farm(item, amount):
 	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
 		topUpPower(1, 900, 1000)
-	elif have(Unlocks.Mazes) and item == Items.Gold and OPTIONS["goldPower"]:
-		pass
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
 		topUpPower(max_drones(), 60, 300)
 	if item == Items.Hay:
