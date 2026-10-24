@@ -57,10 +57,11 @@ def sameNeighbour(n, x, y, crop, poly):
 			return True
 	return False
 
-# Plant the tile under the drone. When `crop` cannot be afforded, plant
-# `other` (the checkerboard partner) instead, or grass as a last resort,
-# so the board keeps paying for the crop that costs something and no
-# plant() call fails. With poly, honour a companion request for this tile
+# Plant the tile under the drone. When `crop` cannot be afforded, plant a
+# free crop that produces the missing item instead, so the board keeps
+# paying for the crop that costs something and no plant() call fails.
+# `other` is the checkerboard partner, kept for the caller's symmetry.
+# With poly, honour a companion request for this tile
 # unless it would sit next to an identical crop or cannot be afforded,
 # record what we planted, and record the new plant's own request if it
 # falls on our strip. Returns True when the new plant's request is
@@ -68,10 +69,9 @@ def sameNeighbour(n, x, y, crop, poly):
 # is when a fertilizer is worth spending: half of the multiplied yield
 # becomes Weird Substance.
 def plantTile(n, x, y, crop, other, poly):
-	if not CanAfford(crop):
-		crop = other
-		if not CanAfford(crop):
-			crop = Entities.Grass
+	short = ShortItem(crop)
+	if short != None:
+		crop = ProducerOf(short)
 	if poly == None:
 		TillIfNeeded(crop)
 		plant(crop)

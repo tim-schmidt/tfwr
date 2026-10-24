@@ -42,11 +42,26 @@ def WaterIfWanted(wanted = False, threshold = 0.75):
 
 # True when every item in the crop's planting cost is in stock.
 def CanAfford(crop):
+	return ShortItem(crop) == None
+
+# The first item of the crop's planting cost that is out of stock, or None.
+def ShortItem(crop):
 	cost = get_cost(crop)
 	for item in cost:
 		if num_items(item) < cost[item]:
-			return False
-	return True
+			return item
+	return None
+
+# A free crop that produces `item`: grass for hay, tree or bush for wood,
+# grass for anything else. Items are only named behind their unlock.
+def ProducerOf(item):
+	if item == Items.Hay:
+		return Entities.Grass
+	if num_unlocked(Unlocks.Plant) > 0 and item == Items.Wood:
+		if num_unlocked(Unlocks.Trees) > 0:
+			return Entities.Tree
+		return Entities.Bush
+	return Entities.Grass
 
 def FertilizeIfWanted(wanted = False):
 	if wanted and num_items(Items.Fertilizer) > 0:
