@@ -72,8 +72,10 @@ def ProducerOf(item):
 		return Entities.Bush
 	return Entities.Grass
 
+# Fertilize when wanted and the stock holds a unit per drone, since drones
+# race for the last one.
 def FertilizeIfWanted(wanted = False):
-	if wanted and num_items(Items.Fertilizer) > 0:
+	if wanted and num_items(Items.Fertilizer) >= max_drones():
 		use_item(Items.Fertilizer)
 
 # True when an (item, amount) stop condition is met. None never stops.
