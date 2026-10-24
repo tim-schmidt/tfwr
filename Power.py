@@ -24,8 +24,10 @@ def sowTile():
 	return plant(Entities.Sunflower)
 
 # One pass: measure every tile, then harvest from 15 petals down to 7,
-# replanting each tile. Returns False when the planting cost ran out.
+# replanting each tile. Returns the number of harvests, or -1 when the
+# planting cost ran out.
 def powerCycle(n, tiles, until):
+	harvests = 0
 	petals = []
 	for tile in tiles:
 		goTo(n, tile)
@@ -41,15 +43,17 @@ def powerCycle(n, tiles, until):
 				while not can_harvest():
 					pass
 				harvest()
+				harvests += 1
 				if not sowTile():
-					return False
+					return -1
 				if Reached(until):
-					return True
+					return harvests
 		p -= 1
-	return True
+	return harvests
 
 # Grow and harvest the w columns starting under the drone until `until`
-# is reached. Returns False when the planting cost ran out.
+# is reached. Returns the number of harvests, or -1 when the planting cost
+# ran out.
 def powerStrip(w, until):
 	RefreshSoilCrops()
 	n = get_world_size()
@@ -58,14 +62,17 @@ def powerStrip(w, until):
 	for i in range(w):
 		for y in range(n):
 			tiles.append((x0 + i, y))
+	harvests = 0
 	for tile in tiles:
 		goTo(n, tile)
 		if not sowTile():
-			return False
+			return -1
 	while not Reached(until):
-		if not powerCycle(n, tiles, until):
-			return False
-	return True
+		got = powerCycle(n, tiles, until)
+		if got < 0:
+			return -1
+		harvests += got
+	return harvests
 
 # Single drone, whole farm.
 def CultivatePower(until):
@@ -90,8 +97,11 @@ def CultivatePowerWithDrones(until):
 		workers.append(drone)
 		for _ in range(w):
 			move(East)
-	ok = powerWorker(until)
+	harvests = powerWorker(until)
 	for drone in workers:
-		if not wait_for(drone):
-			ok = False
-	return ok
+		got = wait_for(drone)
+		if got < 0 or harvests < 0:
+			harvests = -1
+		else:
+			harvests += got
+	return harvests

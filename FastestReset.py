@@ -229,10 +229,13 @@ def farm(item, amount):
 		# Sunflowers cost carrots per planting; stock, cycle, restock.
 		while not Reached(until):
 			ensurePlantable(Entities.Sunflower, plantingsFor(item, amount))
+			start = get_time()
+			power = num_items(Items.Power)
 			if dronesOn():
-				CultivatePowerWithDrones(until)
+				harvests = CultivatePowerWithDrones(until)
 			else:
-				CultivatePower(until)
+				harvests = CultivatePower(until)
+			quick_print("power phase: harvests", harvests, "power", num_items(Items.Power) - power, "seconds", (get_time() - start) // 1)
 	else:
 		quick_print("FastestReset: no producer for", item, "- route order is wrong")
 		return False
