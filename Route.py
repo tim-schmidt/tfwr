@@ -259,7 +259,7 @@ def topUpPower(drones, floor, target):
 def farm(item, amount):
 	until = (item, amount)
 	n = get_world_size()
-	quick_print("farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones())
+	quick_print("t", get_time(), "farm", item, "to", amount, "have", num_items(item), "world", n, "drones", max_drones(), "fertilizer", num_items(Items.Fertilizer), "substance", num_items(Items.Weird_Substance))
 	if have(Unlocks.Dinosaurs) and item == Items.Bone:
 		topUpPower(1, BONES_POWER_STOCK[0], BONES_POWER_STOCK[1])
 	elif not (have(Unlocks.Sunflowers) and item == Items.Power):
