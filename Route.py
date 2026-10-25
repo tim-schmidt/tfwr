@@ -60,6 +60,13 @@ BASE_ROUTE = [
 	(Unlocks.Grass, 5),
 	(Unlocks.Watering, 4),
 	(Unlocks.Fertilizer, 3),
+	# Pumpkins and Polyculture before the first substance farm: a fertilized
+	# tree with a companion yields ten times the substance, so Mazes 1 and
+	# Megafarm 2 stop waiting on fertilizer income (variant 8 below).
+	(Unlocks.Pumpkins, 1),
+	(Unlocks.Pumpkins, 2),
+	(Unlocks.Pumpkins, 3),
+	(Unlocks.Polyculture, 1),
 	(Unlocks.Mazes, 1),
 	(Unlocks.Megafarm, 1),
 	(Unlocks.Megafarm, 2),
@@ -67,13 +74,9 @@ BASE_ROUTE = [
 	(Unlocks.Grass, 6),
 	(Unlocks.Watering, 5),
 	(Unlocks.Carrots, 5),
-	(Unlocks.Pumpkins, 1),
-	(Unlocks.Pumpkins, 2),
-	(Unlocks.Pumpkins, 3),
 	(Unlocks.Expand, 5),
 	(Unlocks.Watering, 6),
 	(Unlocks.Pumpkins, 4),
-	(Unlocks.Polyculture, 1),
 	(Unlocks.Cactus, 1),
 	(Unlocks.Carrots, 6),
 	(Unlocks.Trees, 6),
@@ -106,12 +109,16 @@ BASE_ROUTE = [
 #   5  power floor 25 s, top-ups to 45 s (lost to 100 s by 97 s)
 #   The old 300 s target with bones stock 900/1000 s lost to 100 s by 151 s
 #   (3,147.2 against 2,996.4).
-#   6  Trees 5 before Mazes 1: twice the substance per fertilizer
-#   7  as 6, plus Pumpkins 1-3 and Polyculture 1 before Mazes 1: the
-#      companion bonus on every fertilized tree (Polyculture costs pumpkins)
-#   8  Pumpkins 1-3 and Polyculture 1 before Mazes 1, Trees 5 left in place
-#   9  Pumpkins 1-3 and Polyculture 1 before Megafarm 2 (after Megafarm 1
-#      has given the second drone), Trees 5 left in place
+#   6  Trees 5 before Mazes 1 (three-seed mean 3,035.5 against 3,052.2
+#      for the old order; 7 won that call at 3,000.1)
+#   7  as 6, plus Pumpkins 1-3 and Polyculture 1 before Mazes 1
+#   8  Pumpkins 1-3 and Polyculture 1 before Mazes 1, Trees 5 left in
+#      place (2,961.4 against 2,973.0 for 7: a draw, so the smaller move
+#      is the base)
+#   9  the same block before Megafarm 2 instead (3,060.0): Mazes 1's
+#      substance then drains the fertilizer stock to zero, and the final
+#      gold phase, which is bound by fertilizer, ran 90 to 135 s longer
+#   Variants 6 to 9 are retired; the route above is 8.
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -142,16 +149,6 @@ def buildRoute(variant):
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
-	block = [(Unlocks.Pumpkins, 1), (Unlocks.Pumpkins, 2), (Unlocks.Pumpkins, 3), (Unlocks.Polyculture, 1)]
-	early = {6: [(Unlocks.Trees, 5)], 7: [(Unlocks.Trees, 5)], 8: block, 9: block}
-	for step in block:
-		early[7].append(step)
-	before = (Unlocks.Mazes, 1)
-	if variant == 9:
-		before = (Unlocks.Megafarm, 2)
-	if variant in early:
-		for step in early[variant]:
-			route = moveStep(route, step, before)
 	return route
 
 
