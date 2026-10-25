@@ -1,9 +1,12 @@
 from Utilities import *
 
 # Throughput farming for the Master achievements (1B Wood, 200M Carrots,
-# 20M Pumpkins in one minute), measured in simulation with every unlock
-# and huge stocks of Power, Water and planting costs. Fertilizer is never
-# used: half of a fertilized plant's yield turns into Weird Substance.
+# 20M Pumpkins in one minute), tuned in simulation (SimMaster) and run live
+# from MasterWood.py, MasterCarrots.py and MasterPumpkins.py, since the
+# achievements only count in the real game. All three unlocked 2026-10-25
+# at 1.23B wood, 240M carrots and about 21.7M pumpkins per minute (sim
+# rates; the live runs matched). Fertilizer is never used: half of a
+# fertilized plant's yield turns into Weird Substance.
 #
 # Crops: a satisfied companion request multiplies the harvest 160-fold at
 # full upgrades (409,600 against 2,560 wood per tree), so satisfaction is
@@ -160,10 +163,7 @@ def flagColumn(n, x, h, until):
 	MoveTo(n, get_pos_x(), get_pos_y(), x, 0)
 	board = 0
 	while not Reached(until):
-		t0 = get_time()
 		pumpkinColumn(n, h, board == 0)
-		if x == 0:
-			quick_print("column 0 board", board, "grown in", get_time() - t0)
 		move(South)
 		if get_ground_type() != flagMeans(board):
 			till()
@@ -185,7 +185,6 @@ def SyncedPumpkins(until = None):
 	cols = len(workers)
 	board = 0
 	MoveTo(n, 0, 0, 0, h)
-	t0 = get_time()
 	x = 0
 	while not Reached(until):
 		# One lap over the flags noting the ones not ready, then only those,
@@ -206,7 +205,6 @@ def SyncedPumpkins(until = None):
 		MoveTo(n, x, h, cols - 1, h - 1)
 		x = cols - 1
 		harvest()
-		quick_print("board", board, "harvested at", get_time() - t0)
 		MoveTo(n, x, h - 1, x, h)
 		board += 1
 	for drone in workers:
