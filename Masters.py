@@ -112,10 +112,18 @@ def toRow(n, y, j):
 		for i in range(n - d):
 			move(South)
 
+# Plant the tile under the drone and water it to 0.75 (growth x4; water
+# barely decays, so this is rare after the first board).
+def plantPumpkin():
+	plant(Entities.Pumpkin)
+	while get_water() < 0.75:
+		use_item(Items.Water)
+
 # Grow rows 0 .. h-1 of the column under the drone, starting and ending at
 # row 0: one lap planting, then laps over the tiles not yet ripe,
-# replanting dead ones. Water goes on at planting until the tile holds
-# 0.75 (growth x4); it barely decays. The ground is tilled once, on the
+# replanting dead ones. With two or fewer tiles left the drone waits at
+# each until it is ripe, replanting on death, since another lap costs
+# about as much as the longest growth. The ground is tilled once, on the
 # first board.
 def pumpkinColumn(n, h, firstBoard):
 	pending = []
@@ -124,19 +132,24 @@ def pumpkinColumn(n, h, firstBoard):
 	y = 0
 	while len(pending) > 0:
 		left = []
+		stay = len(pending) <= 2
 		for j in pending:
 			toRow(n, y, j)
 			y = j
 			if firstBoard and get_ground_type() != Grounds.Soil:
 				till()
-			entity = get_entity_type()
-			if entity == None or entity == Entities.Dead_Pumpkin:
-				plant(Entities.Pumpkin)
-				while get_water() < 0.75:
-					use_item(Items.Water)
-				left.append(j)
-			elif not can_harvest():
-				left.append(j)
+			if stay:
+				while not can_harvest():
+					entity = get_entity_type()
+					if entity == None or entity == Entities.Dead_Pumpkin:
+						plantPumpkin()
+			else:
+				entity = get_entity_type()
+				if entity == None or entity == Entities.Dead_Pumpkin:
+					plantPumpkin()
+					left.append(j)
+				elif not can_harvest():
+					left.append(j)
 		pending = left
 		firstBoard = False
 	toRow(n, y, 0)
@@ -173,17 +186,28 @@ def SyncedPumpkins(until = None):
 	board = 0
 	MoveTo(n, 0, 0, 0, h)
 	t0 = get_time()
+	x = 0
 	while not Reached(until):
+		# One lap over the flags noting the ones not ready, then only those,
+		# until none is left; the harvest then follows the last flag by a
+		# few moves instead of the rest of a lap.
 		ready = flagMeans(board)
-		for x in range(cols):
-			while get_ground_type() != ready:
-				pass
-			if x < cols - 1:
-				move(East)
-		move(South)
+		waiting = []
+		for i in range(cols):
+			waiting.append(i)
+		while len(waiting) > 0:
+			left = []
+			for i in waiting:
+				MoveTo(n, x, h, i, h)
+				x = i
+				if get_ground_type() != ready:
+					left.append(i)
+			waiting = left
+		MoveTo(n, x, h, cols - 1, h - 1)
+		x = cols - 1
 		harvest()
 		quick_print("board", board, "harvested at", get_time() - t0)
-		MoveTo(n, cols - 1, h - 1, 0, h)
+		MoveTo(n, x, h - 1, x, h)
 		board += 1
 	for drone in workers:
 		wait_for(drone)
