@@ -1,5 +1,4 @@
 from Utilities import *
-from Pumpkins import growPumpkinStrip
 
 # Throughput farming for the Master achievements (1B Wood, 200M Carrots,
 # 20M Pumpkins in one minute), measured in simulation with every unlock
@@ -103,14 +102,55 @@ def flagMeans(board):
 		return Grounds.Soil
 	return Grounds.Grassland
 
+# Move along the wrapped column from row y to row j the short way.
+def toRow(n, y, j):
+	d = (j - y) % n
+	if d <= n - d:
+		for i in range(d):
+			move(North)
+	else:
+		for i in range(n - d):
+			move(South)
+
+# Grow rows 0 .. h-1 of the column under the drone, starting and ending at
+# row 0: one lap planting, then laps over the tiles not yet ripe,
+# replanting dead ones. Water goes on at planting until the tile holds
+# 0.75 (growth x4); it barely decays. The ground is tilled once, on the
+# first board.
+def pumpkinColumn(n, h, firstBoard):
+	pending = []
+	for j in range(h):
+		pending.append(j)
+	y = 0
+	while len(pending) > 0:
+		left = []
+		for j in pending:
+			toRow(n, y, j)
+			y = j
+			if firstBoard and get_ground_type() != Grounds.Soil:
+				till()
+			entity = get_entity_type()
+			if entity == None or entity == Entities.Dead_Pumpkin:
+				plant(Entities.Pumpkin)
+				while get_water() < 0.75:
+					use_item(Items.Water)
+				left.append(j)
+			elif not can_harvest():
+				left.append(j)
+		pending = left
+		firstBoard = False
+	toRow(n, y, 0)
+
 # Worker on column x: grow rows 0 .. h-1, raise the flag, wait for the
 # harvest, repeat.
 def flagColumn(n, x, h, until):
-	RefreshSoilCrops()
 	MoveTo(n, get_pos_x(), get_pos_y(), x, 0)
 	board = 0
 	while not Reached(until):
-		growPumpkinStrip(n, 1, True, False, h)
+		t0 = get_time()
+		pumpkinColumn(n, h, board == 0)
+		if x == 0:
+			quick_print("column 0 board", board, "grown in", get_time() - t0)
 		move(South)
 		if get_ground_type() != flagMeans(board):
 			till()
@@ -121,7 +161,6 @@ def flagColumn(n, x, h, until):
 
 def SyncedPumpkins(until = None):
 	clear()
-	RefreshSoilCrops()
 	n = get_world_size()
 	h = n - 1
 	workers = []
@@ -133,6 +172,7 @@ def SyncedPumpkins(until = None):
 	cols = len(workers)
 	board = 0
 	MoveTo(n, 0, 0, 0, h)
+	t0 = get_time()
 	while not Reached(until):
 		ready = flagMeans(board)
 		for x in range(cols):
@@ -142,6 +182,7 @@ def SyncedPumpkins(until = None):
 				move(East)
 		move(South)
 		harvest()
+		quick_print("board", board, "harvested at", get_time() - t0)
 		MoveTo(n, cols - 1, h - 1, 0, h)
 		board += 1
 	for drone in workers:
