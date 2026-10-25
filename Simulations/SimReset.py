@@ -5,7 +5,7 @@
 # code spreads about 140 s across seeds, so each variant runs on SEEDS and
 # the mean is the score. Edit VARIANTS (see Route.py buildRoute). Run this
 # file directly in the game.
-VARIANTS = [0]
+VARIANTS = [0, 6, 7]
 SEEDS = [1, 2, 3]
 means = []
 for v in VARIANTS:

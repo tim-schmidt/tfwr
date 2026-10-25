@@ -106,6 +106,9 @@ BASE_ROUTE = [
 #   5  power floor 25 s, top-ups to 45 s (lost to 100 s by 97 s)
 #   The old 300 s target with bones stock 900/1000 s lost to 100 s by 151 s
 #   (3,147.2 against 2,996.4).
+#   6  Trees 5 before Mazes 1: twice the substance per fertilizer
+#   7  as 6, plus Pumpkins 1-3 and Polyculture 1 before Mazes 1: the
+#      companion bonus on every fertilized tree (Polyculture costs pumpkins)
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -136,6 +139,12 @@ def buildRoute(variant):
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
+	if variant == 6 or variant == 7:
+		early = [(Unlocks.Trees, 5)]
+		if variant == 7:
+			early = [(Unlocks.Trees, 5), (Unlocks.Pumpkins, 1), (Unlocks.Pumpkins, 2), (Unlocks.Pumpkins, 3), (Unlocks.Polyculture, 1)]
+		for step in early:
+			route = moveStep(route, step, (Unlocks.Mazes, 1))
 	return route
 
 
