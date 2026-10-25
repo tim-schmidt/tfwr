@@ -109,6 +109,9 @@ BASE_ROUTE = [
 #   6  Trees 5 before Mazes 1: twice the substance per fertilizer
 #   7  as 6, plus Pumpkins 1-3 and Polyculture 1 before Mazes 1: the
 #      companion bonus on every fertilized tree (Polyculture costs pumpkins)
+#   8  Pumpkins 1-3 and Polyculture 1 before Mazes 1, Trees 5 left in place
+#   9  Pumpkins 1-3 and Polyculture 1 before Megafarm 2 (after Megafarm 1
+#      has given the second drone), Trees 5 left in place
 # Decided in-session: Megafarm 4 after Megafarm 3 beat after Mazes 4 by
 # 3.8 s (3,301.9 against 3,305.7); Expand 4 before Trees 2 beat its old
 # place by 96 s (3,356.0 against 3,451.7); both are in the base route.
@@ -139,12 +142,14 @@ def buildRoute(variant):
 	route = []
 	for s in BASE_ROUTE:
 		route.append(s)
-	if variant == 6 or variant == 7:
-		early = [(Unlocks.Trees, 5)]
-		if variant == 7:
-			early = [(Unlocks.Trees, 5), (Unlocks.Pumpkins, 1), (Unlocks.Pumpkins, 2), (Unlocks.Pumpkins, 3), (Unlocks.Polyculture, 1)]
-		for step in early:
-			route = moveStep(route, step, (Unlocks.Mazes, 1))
+	block = [(Unlocks.Pumpkins, 1), (Unlocks.Pumpkins, 2), (Unlocks.Pumpkins, 3), (Unlocks.Polyculture, 1)]
+	early = {6: [(Unlocks.Trees, 5)], 7: [(Unlocks.Trees, 5)] + block, 8: block, 9: block}
+	before = (Unlocks.Mazes, 1)
+	if variant == 9:
+		before = (Unlocks.Megafarm, 2)
+	if variant in early:
+		for step in early[variant]:
+			route = moveStep(route, step, before)
 	return route
 
 
