@@ -80,11 +80,14 @@ def ChaseCrops(crop, until = None):
 	for drone in workers:
 		wait_for(drone)
 
-# Pumpkins: any ripe square of side 6 or more pays 6 per tile, the same as
-# a full board, so every drone grows and harvests its own side x side
-# block with no synchronisation and no respawning per board. Adjacent ripe
-# blocks may merge into a bigger square and get taken by one harvest; the
-# other owners find their tiles empty and replant.
+# Pumpkins: a ripe square of side n pays n^3 for n up to 5 and 6 per tile
+# from 6 up, so every drone grows and harvests its own side x side block
+# with no synchronisation and no respawning per board. harvest() takes
+# the ripe square that holds the drone's tile, and when blocks touch that
+# square can straddle the border: the owner then replants a part block,
+# the neighbour loses half of its block, and ripe remainders belong to
+# nobody (measured: 1.1M pumpkins per minute instead of 20M). Blocks
+# therefore sit `pitch` apart with at least one empty tile between them.
 def pumpkinBlock(n, ox, oy, side, until):
 	RefreshSoilCrops()
 	MoveTo(n, get_pos_x(), get_pos_y(), ox, oy)
@@ -92,17 +95,18 @@ def pumpkinBlock(n, ox, oy, side, until):
 		growPumpkinStrip(n, side, True, False, side)
 		harvest()
 
-# Blocks tile the farm from (0, 0); the remainder past the last full block
-# stays unused. Drones beyond the block count stay unspawned.
-def BlockPumpkins(side = 6, until = None):
+# Blocks tile the farm from (0, 0) every `pitch` tiles (pitch > side);
+# the remainder past the last block stays unused. Blocks beyond the drone
+# count stay empty.
+def BlockPumpkins(side = 5, pitch = 6, until = None):
 	clear()
 	RefreshSoilCrops()
 	n = get_world_size()
-	per = n // side
+	per = (n - side) // pitch + 1
 	blocks = []
 	for bx in range(per):
 		for by in range(per):
-			blocks.append((bx * side, by * side))
+			blocks.append((bx * pitch, by * pitch))
 	workers = []
 	for i in range(1, len(blocks)):
 		drone = spawn_drone(pumpkinBlock, n, blocks[i][0], blocks[i][1], side, until)

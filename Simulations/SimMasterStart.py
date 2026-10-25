@@ -9,7 +9,8 @@
 #   MODE 3  pumpkins with the route's strip code, 32x32, all drones
 #   MODE 4  wood with Masters.ChaseCrops (companion chase, one column each)
 #   MODE 5  carrots the same way
-#   MODE 6  pumpkins with Masters.BlockPumpkins (one 6x6 block per drone)
+#   MODE 6  pumpkins with Masters.BlockPumpkins, SIDE x SIDE blocks every
+#           PITCH tiles, one block per drone
 # Modes 1 to 3 run until TARGET items are gained and print the rate per
 # simulated minute, which is what the Master achievements count.
 from Utilities import *
@@ -114,7 +115,7 @@ else:
 	elif MODE == 5:
 		ChaseCrops(Entities.Carrot, goal)
 	else:
-		BlockPumpkins(6, goal)
+		BlockPumpkins(SIDE, PITCH, goal)
 	t = get_time() - t0
 	gained = num_items(item) - start
 	quick_print("master mode", MODE, item, "gained", gained, "in", t, "s, per minute", gained * 60 / t)
