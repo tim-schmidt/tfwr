@@ -16,17 +16,20 @@ def pumpkinTile(firstPass, water, fertilize):
 		return False
 	return can_harvest()
 
-# Grow a strip of w columns starting under the drone. Plants every tile,
-# then revisits only the tiles not yet ripe, replanting dead ones, until
-# none are left. Ripe pumpkins never die, so a tile is checked once after
-# it ripens. Ends where it started. Returns False when the planting cost
-# ran out, leaving the strip part grown.
-def growPumpkinStrip(n, w, water, fertilize):
+# Grow a strip of w columns starting under the drone, h tiles tall (the
+# whole column when h is None). Plants every tile, then revisits only the
+# tiles not yet ripe, replanting dead ones, until none are left. Ripe
+# pumpkins never die, so a tile is checked once after it ripens. Ends
+# where it started. Returns False when the planting cost ran out, leaving
+# the strip part grown.
+def growPumpkinStrip(n, w, water, fertilize, h = None):
+	if h == None:
+		h = n
 	x0 = get_pos_x()
 	y0 = get_pos_y()
 	pending = []
 	for i in range(w):
-		for j in range(n):
+		for j in range(h):
 			pending.append((x0 + i, (y0 + j) % n))
 
 	x = x0
