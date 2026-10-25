@@ -8,5 +8,4 @@
 #   DISPATCH, REROLL, SHARE, SLOTS - yield mode switches (SimYield)
 #   MODE, WATER - contender number and watering switch (SimTime)
 #   SATISFY - plant the requested companion or not (SimProbe)
-#   SIDE, PITCH - pumpkin block size and spacing (SimMaster)
-SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 200000000, "DISPATCH": False, "REROLL": False, "SHARE": 50, "SLOTS": 0, "MODE": 1, "WATER": False, "SATISFY": True, "SIDE": 5, "PITCH": 6}
+SIM_GLOBALS = {"SIZE": 8, "WORLD": 16, "OX": 0, "OY": 0, "COMPANIONS": False, "DRONES": False, "TARGET": 200000000, "DISPATCH": False, "REROLL": False, "SHARE": 50, "SLOTS": 0, "MODE": 1, "WATER": False, "SATISFY": True}

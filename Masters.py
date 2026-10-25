@@ -81,38 +81,68 @@ def ChaseCrops(crop, until = None):
 		wait_for(drone)
 
 # Pumpkins: a ripe square of side n pays n^3 for n up to 5 and 6 per tile
-# from 6 up, so every drone grows and harvests its own side x side block
-# with no synchronisation and no respawning per board. harvest() takes
-# the ripe square that holds the drone's tile, and when blocks touch that
-# square can straddle the border: the owner then replants a part block,
-# the neighbour loses half of its block, and ripe remainders belong to
-# nobody (measured: 1.1M pumpkins per minute instead of 20M). Blocks
-# therefore sit `pitch` apart with at least one empty tile between them.
-def pumpkinBlock(n, ox, oy, side, until):
-	RefreshSoilCrops()
-	MoveTo(n, get_pos_x(), get_pos_y(), ox, oy)
-	while not Reached(until):
-		growPumpkinStrip(n, side, True, False, side)
-		harvest()
+# from 6 up. harvest() takes the ripe square that holds the drone's tile,
+# so independent blocks only work with a gap between them, and the lost
+# tiles cost more than the synchronisation they save (measured: 4x4
+# blocks a tile apart on 32 drones 16.5M per minute, the route's synced
+# board 19.4M). Hence a synced board, but without the route code's
+# per-board respawn: spawn_drone costs 200 ticks and the main drone walks
+# a column per worker before it farms, about 2 s of the 9.7 s per board.
+#
+# Layout on an n x n farm: workers own columns 0 .. n-2, rows 0 .. n-2,
+# an (n-1) x (n-1) square. Row n-1 holds one flag tile per column. A
+# worker that has its column ripe toggles its flag with till() (one move
+# south from its origin, wrapping) and waits for its origin tile to be
+# emptied by the harvest. The main drone patrols the flag row; every
+# board flips which ground type means "ripe", so a stale flag never reads
+# as ready. When all flags show the board's value it harvests the giant
+# from the corner next to the flag row.
 
-# Blocks tile the farm from (0, 0) every `pitch` tiles (pitch > side);
-# the remainder past the last block stays unused. Blocks beyond the drone
-# count stay empty.
-def BlockPumpkins(side = 5, pitch = 6, until = None):
+def flagMeans(board):
+	if board % 2 == 0:
+		return Grounds.Soil
+	return Grounds.Grassland
+
+# Worker on column x: grow rows 0 .. h-1, raise the flag, wait for the
+# harvest, repeat.
+def flagColumn(n, x, h, until):
+	RefreshSoilCrops()
+	MoveTo(n, get_pos_x(), get_pos_y(), x, 0)
+	board = 0
+	while not Reached(until):
+		growPumpkinStrip(n, 1, True, False, h)
+		move(South)
+		if get_ground_type() != flagMeans(board):
+			till()
+		move(North)
+		while get_entity_type() == Entities.Pumpkin:
+			pass
+		board += 1
+
+def SyncedPumpkins(until = None):
 	clear()
 	RefreshSoilCrops()
 	n = get_world_size()
-	per = (n - side) // pitch + 1
-	blocks = []
-	for bx in range(per):
-		for by in range(per):
-			blocks.append((bx * pitch, by * pitch))
+	h = n - 1
 	workers = []
-	for i in range(1, len(blocks)):
-		drone = spawn_drone(pumpkinBlock, n, blocks[i][0], blocks[i][1], side, until)
+	for x in range(h):
+		drone = spawn_drone(flagColumn, n, x, h, until)
 		if drone == None:
 			break
 		workers.append(drone)
-	pumpkinBlock(n, 0, 0, side, until)
+	cols = len(workers)
+	board = 0
+	MoveTo(n, 0, 0, 0, h)
+	while not Reached(until):
+		ready = flagMeans(board)
+		for x in range(cols):
+			while get_ground_type() != ready:
+				pass
+			if x < cols - 1:
+				move(East)
+		move(South)
+		harvest()
+		MoveTo(n, cols - 1, h - 1, 0, h)
+		board += 1
 	for drone in workers:
 		wait_for(drone)

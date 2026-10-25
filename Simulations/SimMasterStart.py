@@ -9,14 +9,16 @@
 #   MODE 3  pumpkins with the route's strip code, 32x32, all drones
 #   MODE 4  wood with Masters.ChaseCrops (companion chase, one column each)
 #   MODE 5  carrots the same way
-#   MODE 6  pumpkins with Masters.BlockPumpkins, SIDE x SIDE blocks every
-#           PITCH tiles, one block per drone
+#   MODE 6  pumpkins with Masters.SyncedPumpkins (persistent workers, flag
+#           row, 31x31 giant)
+#   MODE 7  tick probe: seconds for 100 moves, for 10 spawns, water decay
+#           on one tile, and one 32-tile pumpkin strip pass by pass
 # Modes 1 to 3 run until TARGET items are gained and print the rate per
 # simulated minute, which is what the Master achievements count.
 from Utilities import *
 from StandardCrops import CultivateCropsWithDrones
 from Pumpkins import CultivatePumpkinsWithDrones, growPumpkinStrip
-from Masters import ChaseCrops, BlockPumpkins
+from Masters import ChaseCrops, SyncedPumpkins
 
 # One plant at (0, 0) with its request met (satisfy True) or deliberately
 # not met. Returns the items of `item` from the single harvest.
@@ -87,8 +89,77 @@ def pumpkinSquare(n, side):
 	harvest()
 	return num_items(Items.Pumpkin) - before
 
+def noop():
+	return
+
+# One column of pumpkins the way growPumpkinStrip does it, printing each
+# pass: tiles still pending and the clock.
+def stripPasses(n):
+	pending = []
+	for j in range(n):
+		pending.append(j)
+	first = True
+	deadAtOnce = 0
+	t0 = get_time()
+	while len(pending) > 0:
+		left = []
+		y = get_pos_y()
+		for j in pending:
+			while y != j:
+				move(North)
+				y = (y + 1) % n
+			if first:
+				TillIfNeeded(Entities.Pumpkin)
+			entity = get_entity_type()
+			if entity == None or entity == Entities.Dead_Pumpkin:
+				plant(Entities.Pumpkin)
+				if get_entity_type() == Entities.Dead_Pumpkin:
+					deadAtOnce += 1
+				WaterIfWanted(True)
+				left.append(j)
+			elif not can_harvest():
+				left.append(j)
+		quick_print("strip pass pending", len(pending), "left", len(left), "dead right after planting", deadAtOnce, "t", get_time() - t0, "water", get_water())
+		deadAtOnce = 0
+		pending = left
+		first = False
+
 RefreshSoilCrops()
-if MODE == 0:
+if MODE == 7:
+	set_world_size(32)
+	n = get_world_size()
+	clear()
+	t0 = get_time()
+	for i in range(100):
+		move(North)
+	quick_print("probe 100 moves", get_time() - t0, "s")
+	t0 = get_time()
+	drones = []
+	for i in range(10):
+		drones.append(spawn_drone(noop))
+	t1 = get_time()
+	for d in drones:
+		wait_for(d)
+	quick_print("probe 10 spawns", t1 - t0, "s, with wait_for", get_time() - t0, "s")
+	if can_harvest():
+		harvest()
+	plant(Entities.Tree)
+	for i in range(4):
+		use_item(Items.Water)
+	w0 = get_water()
+	t0 = get_time()
+	while get_time() - t0 < 5:
+		pass
+	w1 = get_water()
+	while not can_harvest():
+		pass
+	harvest()
+	quick_print("probe water after 4 uses", w0, "after 5 s", w1, "after harvest", get_water())
+	stripPasses(n)
+	before = num_items(Items.Pumpkin)
+	harvest()
+	quick_print("probe strip of", n, "harvested", num_items(Items.Pumpkin) - before)
+elif MODE == 0:
 	set_world_size(8)
 	n = get_world_size()
 	quick_print("probe tree met", oneHarvest(n, Entities.Tree, Items.Wood, True), "unmet", oneHarvest(n, Entities.Tree, Items.Wood, False))
@@ -115,7 +186,7 @@ else:
 	elif MODE == 5:
 		ChaseCrops(Entities.Carrot, goal)
 	else:
-		BlockPumpkins(SIDE, PITCH, goal)
+		SyncedPumpkins(goal)
 	t = get_time() - t0
 	gained = num_items(item) - start
 	quick_print("master mode", MODE, item, "gained", gained, "in", t, "s, per minute", gained * 60 / t)
