@@ -143,7 +143,9 @@ def buildRoute(variant):
 	for s in BASE_ROUTE:
 		route.append(s)
 	block = [(Unlocks.Pumpkins, 1), (Unlocks.Pumpkins, 2), (Unlocks.Pumpkins, 3), (Unlocks.Polyculture, 1)]
-	early = {6: [(Unlocks.Trees, 5)], 7: [(Unlocks.Trees, 5)] + block, 8: block, 9: block}
+	early = {6: [(Unlocks.Trees, 5)], 7: [(Unlocks.Trees, 5)], 8: block, 9: block}
+	for step in block:
+		early[7].append(step)
 	before = (Unlocks.Mazes, 1)
 	if variant == 9:
 		before = (Unlocks.Megafarm, 2)
